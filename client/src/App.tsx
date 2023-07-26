@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Friends from './pages/Friends';
 import Chat from './pages/Chat';
+import Play from './pages/Play';
+import Leaderboard from './pages/Leaderboard';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
         <Route path='/profile' element={<Profile />}/>
         <Route path='/friends' element={<Friends />}/>
         <Route path='/chat' element={<Chat />}/>
+        <Route path='/play' element={<Play />}/>
+        <Route path='/leaderboard' element={<Leaderboard />}/>
       </Routes>
     </Router>
   );

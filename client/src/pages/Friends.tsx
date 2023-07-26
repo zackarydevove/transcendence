@@ -6,23 +6,25 @@ import BackButton from '../components/BackButton';
 
 interface Friend {
   username: string;
+  status: string;
   profilePicture: string; // url to profile picture
 }
 
 const Friends: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  // Mock data
   const friends: Friend[] = [
-    { username: 'Friend 1', profilePicture: '' }, // Mock data
-    { username: 'Friend 2', profilePicture: '' },
-    { username: 'Friend 3', profilePicture: '' },
-    { username: 'Friend 4', profilePicture: '' },
-    { username: 'Friend 5', profilePicture: '' },
-    { username: 'Friend 6', profilePicture: '' },
-    { username: 'Friend 7', profilePicture: '' },
-    { username: 'Friend 8', profilePicture: '' },
-    { username: 'Friend 9', profilePicture: '' },
-    { username: 'Friend 10', profilePicture: '' },
+    { username: 'Friend 1', status: 'online', profilePicture: '' }, 
+    { username: 'Friend 2', status: 'online', profilePicture: '' },
+    { username: 'Friend 3', status: 'offline', profilePicture: '' },
+    { username: 'Friend 4', status: 'in game', profilePicture: '' },
+    { username: 'Friend 5', status: 'online', profilePicture: '' },
+    { username: 'Friend 6', status: 'offline', profilePicture: '' },
+    { username: 'Friend 7', status: 'offline', profilePicture: '' },
+    { username: 'Friend 8', status: 'in game', profilePicture: '' },
+    { username: 'Friend 9', status: 'online', profilePicture: '' },
+    { username: 'Friend 10', status: 'online', profilePicture: '' },
   ];
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,16 +71,36 @@ const Friends: React.FC = () => {
                                             <div className='h-12 w-12 bg-gray-200 rounded-full mr-4' />
                                             <p className='text-gray-700'>{friend.username}</p>
                                         </div>
+                                        {/* Status */}
+                                        <div>
+                                            <p className={`
+                                                text-xs 
+                                                ${friend.status === 'online' ? 'text-green-400' : 
+                                                friend.status === 'offline' ? 'text-red-400' :
+                                                friend.status === 'in game' ? 'text-orange-400' : ''}
+                                            `}>
+                                                {friend.status}
+                                            </p>
+
+                                            {/* <div className={`
+                                                h-3 w-3 
+                                                rounded-full 
+                                                ${friend.status === 'online' ? 'bg-green-400' : 
+                                                friend.status === 'offline' ? 'bg-red-400' :
+                                                friend.status === 'in game' ? 'bg-orange-400' : ''}
+                                            `}/> */}
+                                        </div>
+
                                         {/* Actions */}
                                         <div className='relative'>
-                                        <BsThreeDots className='text-gray-500 cursor-pointer' onClick={() => toggleDropdown(index)} />
-                                        {dropdownOpen === index && (
-                                            <div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
-                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</a>
-                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Delete friend</a>
-                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Block friend</a>
-                                            </div>
-                                        )}
+                                            <BsThreeDots className='text-gray-500 cursor-pointer' onClick={() => toggleDropdown(index)} />
+                                            {dropdownOpen === index && (
+                                                <div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
+                                                    <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</a>
+                                                    <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Delete friend</a>
+                                                    <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Block friend</a>
+                                                </div>
+                                            )}
                                         </div>
 
                                     </div>

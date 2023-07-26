@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaGamepad, FaUser, FaUsers, FaComments, FaCog, FaPowerOff } from 'react-icons/fa';
+import { FaGamepad, FaUser, FaUsers, FaComments, FaCog, FaPowerOff, FaTrophy } from 'react-icons/fa';
 
 function Home() {
   return (
@@ -30,13 +30,13 @@ function Home() {
                     <p>Chat</p>
                 </a>
 
-                {/* Settings */}
-                <a href="/settings" className='flex flex-col items-center text-white hover:text-indigo-500'>
-                    <FaCog className='h-12 w-12'/>
-                    <p>Settings</p>
+                {/* Leaderboard */}
+                <a href="/leaderboard" className='flex flex-col items-center text-white hover:text-indigo-500'>
+                    <FaTrophy className='h-12 w-12'/>
+                    <p>Leaderboard</p>
                 </a>
 
-				{/* Settings */}
+				{/* Logout */}
 				<a href="/login" className='flex flex-col items-center text-white hover:text-indigo-500'>
 					<FaPowerOff className='h-12 w-12'/>
 					<p>Logout</p>
