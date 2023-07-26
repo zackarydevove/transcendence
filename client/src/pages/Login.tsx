@@ -31,7 +31,7 @@ function Login() {
         </div>
         {/* 42 OAuth */}
         <div className='mb-4'>
-            <button className='w-12 h-12 rounded-full bg-gray-200'></button>
+			<button className='w-12 h-12 rounded-full bg-42logo bg-cover '></button>
         </div>
         {/* Sign up link */}
         <div className='text-center flex gap-1'>
