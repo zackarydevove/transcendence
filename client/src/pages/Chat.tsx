@@ -9,6 +9,7 @@ interface Group {
 
 const Chat: React.FC = () => {
   const [search, setSearch] = useState<string>('');
+  const [userChannels, setUserChannels] = useState<boolean>(true);
 
   const groups: Group[] = [
     { username: "Group 1" },
@@ -27,6 +28,10 @@ const Chat: React.FC = () => {
     setSearch(event.target.value);
   }
 
+  const handleUserChannels = () => {
+    setUserChannels(!userChannels);
+  }
+
   return (
     <div className='relative flex items-center justify-center h-screen w-screen bg-gray-900'>
 
@@ -34,64 +39,81 @@ const Chat: React.FC = () => {
         <BackButton />
 
         <div className='flex items-center justify-center gap-3 h-3/4 w-3/4'>
-            {/* Left */}
+            {/* Left : User's channels / Joinable channels */}
             <div className='flex flex-col gap-3 h-full w-1/4'>
+            
+                <div className='flex flex-col items-center justify-start bg-white rounded-xl shadow-md overflow-y-auto'>
 
-                {/* up : User's channels */}
-                <div className='flex flex-col items-center justify-start bg-white rounded-xl shadow-md p-8 h-1/2 overflow-y-auto'>
-
-                    {/* SearchBar */}
-                    <div className='flex items-center mb-4 w-full'>
-                        <input
-                            className='w-full px-3 py-2 border border-gray-300 rounded-md mr-2 focus:outline-none focus:border-indigo-500'
-                            type='text'
-                            placeholder='Search'
-                            value={search}
-                            onChange={handleSearchChange}
-                        />
-                        <FaSearch className='text-gray-500 max-sm:hidden' size='1.7em' />
+                {/* Choose channels or join channels */}
+                    <div className='flex justify-evenly items-center mb-3 w-full cursor-pointer'>
+                        <div className={`flex-1 text-center p-4 ${userChannels ? 'bg-indigo-500 text-white font-bold' : ''}`} 
+                            onClick={() => setUserChannels(true)}>
+                            My channels
+                        </div>
+                        <div className={`flex-1 text-center p-4 ${userChannels ? '' : 'bg-indigo-500 text-white font-bold'}`} 
+                            onClick={() => setUserChannels(false)}>
+                            <p>Join channels</p>
+                        </div>
                     </div>
 
-                    {/* List of user's groups */}
-                    <div className='w-full h-96 overflow-y-auto'>
-                        {groups.map((friend, index) => (
-                            <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer'>
-                                {/* Group name */}
-                                <div className='flex items-center'>
-                                    <p className='text-gray-700'>{friend.username}</p>
-                                </div>
+                {
+                    userChannels ? 
+
+                        <div className='flex flex-col items-center justify-start overflow-y-auto p-8 pt-0'>
+                            {/* SearchBar */}
+                            <div className='flex items-center mb-4 w-full'>
+                                <input
+                                    className='w-full px-3 py-2 border border-gray-300 rounded-md mr-2 focus:outline-none focus:border-indigo-500'
+                                    type='text'
+                                    placeholder='Search'
+                                    value={search}
+                                    onChange={handleSearchChange}
+                                />
+                                <FaSearch className='text-gray-500 max-sm:hidden' size='1.7em' />
                             </div>
-                        ))}
-                    </div>
 
-                </div>
-
-                {/* down : Joinable channels */}
-                <div className='flex flex-col items-center justify-start bg-white rounded-xl shadow-md p-8 h-1/2 overflow-y-auto'>
-
-                    {/* SearchBar */}
-                    <div className='flex items-center mb-4 w-full'>
-                        <input
-                            className='w-full px-3 py-2 border border-gray-300 rounded-md mr-2 focus:outline-none focus:border-indigo-500'
-                            type='text'
-                            placeholder='Search'
-                            value={search}
-                            onChange={handleSearchChange}
-                        />
-                        <FaSearch className='text-gray-500 max-sm:hidden' size='1.7em' />
-                    </div>
-
-                    {/* List of joinable groups */}
-                    <div className='w-full h-96 overflow-y-auto'>
-                        {groups.map((friend, index) => (
-                            <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer'>
-                                {/* Group name */}
-                                <div className='flex items-center'>
-                                    <p className='text-gray-700'>{friend.username}</p>
-                                </div>
+                            {/* List of user's groups */}
+                            <div className='w-full overflow-y-auto'>
+                                {groups.map((friend, index) => (
+                                    <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer'>
+                                        {/* Group name */}
+                                        <div className='flex items-center'>
+                                            <p className='text-gray-700'>{friend.username}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+
+                    :
+
+                        <div className='flex flex-col items-center justify-start overflow-y-auto p-8 pt-0'>
+                            {/* SearchBar */}
+                            <div className='flex items-center mb-4 w-full'>
+                                <input
+                                    className='w-full px-3 py-2 border border-gray-300 rounded-md mr-2 focus:outline-none focus:border-indigo-500'
+                                    type='text'
+                                    placeholder='Search SECOND'
+                                    value={search}
+                                    onChange={handleSearchChange}
+                                />
+                                <FaSearch className='text-gray-500 max-sm:hidden' size='1.7em' />
+                            </div>
+
+                            {/* List of user's groups */}
+                            <div className='w-full overflow-y-auto'>
+                                {groups.map((friend, index) => (
+                                    <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer'>
+                                        {/* Group name */}
+                                        <div className='flex items-center'>
+                                            <p className='text-gray-700'>{friend.username}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                }
 
                 </div>
 
