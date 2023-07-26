@@ -3,26 +3,32 @@ import {FaLock, FaTrophy } from 'react-icons/fa';
 import BackButton from '../components/BackButton';
 
 interface Game {
+  date: string;
   opponent: string;
   scoreA: number;
   scoreB: number;
+  points: number;
 }
 
 const Profile: React.FC = () => {
   const [username, setUsername] = useState<string>('Zack');
+  const [wins, setWins] = useState<number>(34);
+  const [losses, setLosses] = useState<number>(12);
+  const [rankPoints, setRankPoints] = useState<number>(128);
+  // Mock data
   const games: Game[] = [
-    { opponent: 'Bob', scoreA: 3, scoreB: 7},
-    { opponent: 'Zack', scoreA: 5, scoreB: 3},
-    { opponent: 'Tom', scoreA: 4, scoreB: 11},
-    { opponent: 'Zack', scoreA: 5, scoreB: 3},
-    { opponent: 'Tom', scoreA: 4, scoreB: 11},
-    { opponent: 'Zack', scoreA: 5, scoreB: 3},
-    { opponent: 'Tom', scoreA: 4, scoreB: 11},
-    { opponent: 'Zack', scoreA: 5, scoreB: 3},
-    { opponent: 'Tom', scoreA: 4, scoreB: 11},
-    { opponent: 'Zack', scoreA: 5, scoreB: 3},
-    { opponent: 'Tom', scoreA: 4, scoreB: 11},
-  ]; // Mock data
+    { date: '01/01/2023', opponent: 'Bob', scoreA: 3, scoreB: 7, points: -16},
+    { date: '01/01/2023', opponent: 'Zack', scoreA: 5, scoreB: 3, points: 14},
+    { date: '01/01/2023', opponent: 'Tom', scoreA: 4, scoreB: 11, points: -15},
+    { date: '01/01/2023', opponent: 'Zack', scoreA: 5, scoreB: 3, points: 15},
+    { date: '01/01/2023', opponent: 'Tom', scoreA: 4, scoreB: 11, points: -14},
+    { date: '01/01/2023', opponent: 'Zack', scoreA: 5, scoreB: 3, points: 15},
+    { date: '01/01/2023', opponent: 'Tom', scoreA: 4, scoreB: 11, points: -14},
+    { date: '01/01/2023', opponent: 'Zack', scoreA: 5, scoreB: 3, points: 15},
+    { date: '01/01/2023', opponent: 'Tom', scoreA: 4, scoreB: 11, points: -16},
+    { date: '01/01/2023', opponent: 'Zack', scoreA: 5, scoreB: 3, points: 14},
+    { date: '01/01/2023', opponent: 'Tom', scoreA: 4, scoreB: 11, points: -15},
+  ]; 
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
@@ -41,9 +47,16 @@ const Profile: React.FC = () => {
                 <div className='flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-8'>
 
                     {/* Profile Picture */}
-                    <div className='relative mb-4'>
+                    <div className='relative flex items-center justify-evenly mb-4 w-full'>
                         <div className='h-24 w-24 bg-black rounded-full'/>
-
+                        <div className='ml-4'>
+                            <div className='flex gap-1'>
+                                <p>{wins} W</p>
+                                <p>{losses} L</p>
+                            </div>
+                            <p>Winrate: {(wins / (wins + losses) * 100).toFixed(2)}%</p>
+                            <p>{rankPoints} Points</p>
+                        </div>
                     </div>
                     
                     {/* Username */}
@@ -82,11 +95,12 @@ const Profile: React.FC = () => {
                     <div className='flex flex-col gap-3 overflow-y-auto max-h-64'>
                         {games.map((game, index) => (
                             <div key={index}
-                                className={`relative flex justify-evenly rounded-xl px-3 py-1 ${game.scoreA > game.scoreB ? 'bg-green-300' : 'bg-red-300'}`}>
+                                className={`relative flex items-center justify-evenly rounded-xl px-3 py-1 ${game.scoreA > game.scoreB ? 'bg-green-300' : 'bg-red-300'}`}>
+                                <p className='text-xs'>{game.date}</p>
                                 <p>{game.scoreA}</p>
                                 <p className='text-gray-700 mb-1'>{game.opponent}</p>
                                 <p>{game.scoreB}</p>
-                                {/* <p className='absolute bottom-0.5 left-2 text-xs'>12.07.23</p> */}
+                                <p className='text-xs'>{game.points}</p>
                             </div>
                         ))}
                     </div>
