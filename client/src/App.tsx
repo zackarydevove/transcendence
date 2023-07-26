@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Friends from './pages/Friends';
+import Chat from './pages/Chat';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path='/signup' element={<Signup />}/>
         <Route path='/profile' element={<Profile />}/>
         <Route path='/friends' element={<Friends />}/>
+        <Route path='/chat' element={<Chat />}/>
       </Routes>
     </Router>
   );

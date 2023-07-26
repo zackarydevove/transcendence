@@ -8,10 +8,10 @@ function BackButton() {
   return (
     <div>
         <button 
-          className='absolute top-4 left-4 bg-indigo-500 text-white rounded-full p-1 hover:bg-white hover:text-indigo-500 transition'
+          className='absolute top-4 left-4 bg-indigo-500 text-white rounded-full p-2 hover:bg-white hover:text-indigo-500 transition'
           onClick={() => navigate(-1)}
         >
-          <FaArrowLeft/>
+          <FaArrowLeft size={'1.4em'}/>
         </button>
     </div>
   )

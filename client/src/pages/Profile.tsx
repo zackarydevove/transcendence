@@ -16,7 +16,7 @@ const Profile: React.FC = () => {
         {/* Back Button */}
         <BackButton />
 
-        <div className='flex gap-3'>
+        <div className='flex gap-3 w-1/2'>
             {/* Left */}
             <div className='flex flex-col gap-3'>
                 {/* up */}
@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
             </div>
 
             {/* Right */}
-            <div className='flex flex-col  bg-white rounded-xl shadow-md p-8'>
+            <div className='flex flex-col  bg-white rounded-xl shadow-md p-8 w-1/2'>
 
                 {/* History */}
                 <div className='w-full'>
