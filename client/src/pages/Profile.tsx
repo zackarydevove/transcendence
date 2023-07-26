@@ -2,9 +2,27 @@ import React, { useState, ChangeEvent } from 'react';
 import {FaLock, FaTrophy } from 'react-icons/fa';
 import BackButton from '../components/BackButton';
 
+interface Game {
+  opponent: string;
+  scoreA: number;
+  scoreB: number;
+}
+
 const Profile: React.FC = () => {
   const [username, setUsername] = useState<string>('John Doe');
-  const games: string[] = ['Game 1', 'Game 2', 'Game 3']; // Mock data
+  const games: Game[] = [
+    { opponent: 'Bob', scoreA: 3, scoreB: 7},
+    { opponent: 'Zack', scoreA: 5, scoreB: 3},
+    { opponent: 'Tom', scoreA: 4, scoreB: 11},
+    { opponent: 'Zack', scoreA: 5, scoreB: 3},
+    { opponent: 'Tom', scoreA: 4, scoreB: 11},
+    { opponent: 'Zack', scoreA: 5, scoreB: 3},
+    { opponent: 'Tom', scoreA: 4, scoreB: 11},
+    { opponent: 'Zack', scoreA: 5, scoreB: 3},
+    { opponent: 'Tom', scoreA: 4, scoreB: 11},
+    { opponent: 'Zack', scoreA: 5, scoreB: 3},
+    { opponent: 'Tom', scoreA: 4, scoreB: 11},
+  ]; // Mock data
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
@@ -61,9 +79,17 @@ const Profile: React.FC = () => {
                         <FaTrophy className='text-indigo-500 mb-2' size={24}/>
                         <p className='text-gray-500 mb-2'>History</p>
                     </div>
-                    {games.map((game, index) => (
-                        <p key={index} className='text-gray-700 mb-1'>- {game}</p>
-                    ))}
+                    <div className='flex flex-col gap-3 overflow-y-auto max-h-64'>
+                        {games.map((game, index) => (
+                            <div key={index}
+                                className={`relative flex justify-evenly rounded-xl px-3 py-1 ${game.scoreA > game.scoreB ? 'bg-green-300' : 'bg-red-300'}`}>
+                                <p>{game.scoreA}</p>
+                                <p className='text-gray-700 mb-1'>{game.opponent}</p>
+                                <p>{game.scoreB}</p>
+                                {/* <p className='absolute bottom-0.5 left-2 text-xs'>12.07.23</p> */}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
             </div>
