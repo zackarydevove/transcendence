@@ -58,9 +58,12 @@ const Leaderboard: React.FC = () => {
         {/* Players List */}
         <div className='w-full h-full overflow-y-auto '>
           {players.filter(player => player.username.toLowerCase().includes(search.toLowerCase())).map((player, index) => (
-            <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200'>
-              {/* Username */}
-              <p className='text-gray-700'>{player.username}</p>
+            <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-100'>
+              {/* PP && Username */}
+              <div className='flex gap-4 items-center'>
+                <div className='w-12 h-12 bg-pp bg-cover rounded-full'/>
+                <p className='text-gray-700'>{player.username}</p>
+              </div>
               {/* Points */}
               <p className='text-gray-700'>{player.points} points</p>
               {/* Matches Won */}

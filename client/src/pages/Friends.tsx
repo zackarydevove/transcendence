@@ -120,7 +120,7 @@ const Friends: React.FC = () => {
                     {/* Mock Messages - Do mapped messages here */}
                     <div className='self-start flex flex-row items-start bg-blue-200 rounded-xl p-2 mt-2'>
                         {/* Profile Picture */}
-                        <div className='flex-shrink-0 h-10 w-10 bg-black rounded-full mr-3 hover:cursor-pointer'/> 
+                        <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
                         <div>
                             {/* Name and time */}
                             <p>Bob · 3:05 AM</p> 
@@ -130,7 +130,7 @@ const Friends: React.FC = () => {
                     </div>
                     <div className='self-end flex flex-row items-start bg-green-200 rounded-xl p-2 mt-2'>
                         {/* Profile Picture */}
-                        <div className='flex-shrink-0 h-10 w-10 bg-black rounded-full mr-3 hover:cursor-pointer'/> 
+                        <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
                         <div>
                             {/* Name and time */}
                             <p>You · Now</p> 
@@ -143,7 +143,7 @@ const Friends: React.FC = () => {
                 {/* Send a message */}
                 <div className='w-full flex items-center justify-start border-t-2 border-gray-200 pt-2'>
                     <input className='mr-2 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500' placeholder='Type a message' />
-                    <BiSolidSend className='text-indigo-500' size='1.5em'/>
+                    <BiSolidSend className='text-indigo-500 hover:cursor-pointer' size='1.5em'/>
                 </div>
 
             </div>

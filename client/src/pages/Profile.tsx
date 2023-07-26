@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import {FaLock, FaTrophy } from 'react-icons/fa';
 import BackButton from '../components/BackButton';
+import { BsCameraFill } from 'react-icons/bs';
 
 interface Game {
   date: string;
@@ -15,6 +16,7 @@ const Profile: React.FC = () => {
   const [wins, setWins] = useState<number>(34);
   const [losses, setLosses] = useState<number>(12);
   const [rankPoints, setRankPoints] = useState<number>(128);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   // Mock data
   const games: Game[] = [
     { date: '01/01/2023', opponent: 'Bob', scoreA: 3, scoreB: 7, points: -16},
@@ -34,6 +36,10 @@ const Profile: React.FC = () => {
     setUsername(event.target.value);
   }
 
+  const onHover = (x: boolean) => {
+    setIsHovered(x);
+  }
+
   return (
     <div className='relative flex items-center justify-center h-screen w-screen bg-gray-900'>
       
@@ -48,7 +54,11 @@ const Profile: React.FC = () => {
 
                     {/* Profile Picture */}
                     <div className='relative flex items-center justify-evenly mb-4 w-full'>
-                        <div className='h-24 w-24 bg-black rounded-full'/>
+                        <div className='flex justify-center items-center h-24 w-24 bg-pp bg-cover rounded-full border border-gray-200 hover:cursor-pointer'
+                        onMouseEnter={() => onHover(true)}
+                        onMouseLeave={() => onHover(false)}>
+                            <BsCameraFill className={`${isHovered ? '' : 'hidden'}`} size={'2em'} />
+                        </div>
                         <div className='ml-4'>
                             <div className='flex gap-1'>
                                 <p>{wins} W</p>
