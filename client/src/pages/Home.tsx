@@ -37,7 +37,7 @@ function Home() {
                 </a>
 
 				{/* Settings */}
-				<a href="/settings" className='flex flex-col items-center text-white hover:text-indigo-500'>
+				<a href="/login" className='flex flex-col items-center text-white hover:text-indigo-500'>
 					<FaPowerOff className='h-12 w-12'/>
 					<p>Logout</p>
 				</a>

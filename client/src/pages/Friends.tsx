@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaComment, FaBan, FaTrash, FaGamepad, FaSearch } from 'react-icons/fa';
 import { BiSolidSend } from 'react-icons/bi';
+import { BsThreeDots } from 'react-icons/bs';
 import BackButton from '../components/BackButton';
 
 interface Friend {
@@ -10,6 +11,7 @@ interface Friend {
 
 const Friends: React.FC = () => {
   const [search, setSearch] = useState<string>('');
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const friends: Friend[] = [
     { username: 'Friend 1', profilePicture: '' }, // Mock data
     { username: 'Friend 2', profilePicture: '' },
@@ -25,6 +27,10 @@ const Friends: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
+  }
+
+  const toggleDropdown = (index: number) => {
+    setDropdownOpen(index !== dropdownOpen ? index : null);
   }
 
   return (
@@ -57,19 +63,24 @@ const Friends: React.FC = () => {
                             {/* Friends List */}
                             <div className='w-full h-full overflow-y-auto '>
                                 {friends.map((friend, index) => (
-                                    <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200'>
+                                    <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-indigo-200 '>
                                         {/* Profile Picture and Username */}
                                         <div className='flex items-center'>
                                             <div className='h-12 w-12 bg-gray-200 rounded-full mr-4' />
                                             <p className='text-gray-700'>{friend.username}</p>
                                         </div>
                                         {/* Actions */}
-                                        <div className='flex items-center gap-4 max-sm:hidden'>
-                                            <FaComment className='text-blue-500 cursor-pointer' />
-                                            <FaGamepad className='text-green-500 cursor-pointer' />
-                                            <FaBan className='text-red-500 cursor-pointer' />
-                                            <FaTrash className='text-gray-500 cursor-pointer' />
+                                        <div className='relative'>
+                                        <BsThreeDots className='text-gray-500 cursor-pointer' onClick={() => toggleDropdown(index)} />
+                                        {dropdownOpen === index && (
+                                            <div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
+                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</a>
+                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Delete friend</a>
+                                                <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Block friend</a>
+                                            </div>
+                                        )}
                                         </div>
+
                                     </div>
                                 ))}
                             </div>

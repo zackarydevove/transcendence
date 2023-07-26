@@ -9,7 +9,7 @@ interface Game {
 }
 
 const Profile: React.FC = () => {
-  const [username, setUsername] = useState<string>('John Doe');
+  const [username, setUsername] = useState<string>('Zack');
   const games: Game[] = [
     { opponent: 'Bob', scoreA: 3, scoreB: 7},
     { opponent: 'Zack', scoreA: 5, scoreB: 3},
