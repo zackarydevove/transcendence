@@ -1,11 +1,10 @@
 import React, { useState, ChangeEvent } from 'react';
-import { FaArrowLeft, FaUser, FaLock, FaTrophy } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import {FaLock, FaTrophy } from 'react-icons/fa';
+import BackButton from '../components/BackButton';
 
 const Profile: React.FC = () => {
   const [username, setUsername] = useState<string>('John Doe');
   const games: string[] = ['Game 1', 'Game 2', 'Game 3']; // Mock data
-  const navigate = useNavigate();
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
@@ -15,12 +14,7 @@ const Profile: React.FC = () => {
     <div className='relative flex items-center justify-center h-screen w-screen bg-gray-900'>
       
         {/* Back Button */}
-        <button 
-          className='absolute top-4 left-4 bg-indigo-500 text-white rounded-full p-1 hover:bg-white hover:text-indigo-500 transition'
-          onClick={() => navigate(-1)}
-        >
-          <FaArrowLeft/>
-        </button>
+        <BackButton />
 
         <div className='flex gap-3'>
             {/* Left */}
