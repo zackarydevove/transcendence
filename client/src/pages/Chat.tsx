@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import { FaLock, FaTrophy, FaSearch } from 'react-icons/fa';
 import { BiPlus, BiSolidSend } from 'react-icons/bi';
+import { AiFillSetting, AiOutlineClose } from 'react-icons/ai';
 import BackButton from '../components/BackButton';
 
 interface Group {
@@ -10,6 +11,7 @@ interface Group {
 const Chat: React.FC = () => {
     const [search, setSearch] = useState<string>('');
     const [createOpen, setCreateOpen] = useState<boolean>(false);
+    const [settings, setSettings] = useState<boolean>(false);
     const [userChannels, setUserChannels] = useState<boolean>(true);
     const [groupType, setGroupType] = useState<string>('public');
     const [password, setPassword] = useState<string>('');
@@ -191,40 +193,64 @@ const Chat: React.FC = () => {
 
 
                 {/* Right : Chat */}
-                <div className='flex flex-col bg-white rounded-xl shadow-md p-8 h-full w-2/4'>
 
-                    {/* Chat messages */}
-                    <div className='flex flex-col h-full w-full overflow-y-auto mb-4'>
-                        {/* Mock Messages - Do mapped messages here */}
-                        <div className='self-start flex flex-row items-start bg-blue-200 rounded-xl p-2 mt-2'>
-                            {/* Profile Picture */}
-                            <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
-                            <div>
-                                {/* Name and time */}
-                                <p>Bob · 3:05 AM</p> 
-                                {/* Message */}
-                                <p>Hi, how are you zack hey sjajdksa kdsa lasld kwako sadjmklosa jdw sdnd sajnb dlwan jsn dkjasnwj sakbdkhaw! dsamk dsamlkdwanj dsanjlaw njkmlsdn bkawbsajl ndsajdwnanjskdsa sakd mskad jsadkjmsa?</p> 
+                    {
+                        settings ?
+
+                        <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full w-2/4'>
+
+                            {/* Close setting button */}
+                            <div className='absolute top-2 right-2 cursor-pointer'
+                                onClick={() => setSettings(false)}>
+                                <AiOutlineClose size={'1.6em'} className='text-indigo-500 hover:text-indigo-600'/>
+                            </div>
+
+                        </div>
+
+                        :
+
+                        <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full w-2/4'>
+
+
+                            {/* Setting button */}
+                            <div className='absolute top-2 right-2 cursor-pointer'
+                                onClick={() => setSettings(true)}>
+                                <AiFillSetting size={'1.6em'} className='text-indigo-500 hover:text-indigo-600'/>
+                            </div>
+
+                            {/* Chat messages */}
+                            <div className='flex flex-col h-full w-full overflow-y-auto mb-4'>
+                                {/* Mock Messages - Do mapped messages here */}
+                                <div className='self-start flex flex-row items-start bg-blue-200 rounded-xl p-2 mt-2'>
+                                    {/* Profile Picture */}
+                                    <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
+                                    <div>
+                                        {/* Name and time */}
+                                        <p>Bob · 3:05 AM</p> 
+                                        {/* Message */}
+                                        <p>Hi, how are you zack hey sjajdksa kdsa lasld kwako sadjmklosa jdw sdnd sajnb dlwan jsn dkjasnwj sakbdkhaw! dsamk dsamlkdwanj dsanjlaw njkmlsdn bkawbsajl ndsajdwnanjskdsa sakd mskad jsadkjmsa?</p> 
+                                    </div>
+                                </div>
+                                <div className='self-end flex flex-row items-start bg-green-200 rounded-xl p-2 mt-2'>
+                                    {/* Profile Picture */}
+                                    <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
+                                    <div>
+                                        {/* Name and time */}
+                                        <p>You · Now</p> 
+                                        {/* Message */}
+                                        <p>I'm good, how about you?</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Send a message */}
+                            <div className='w-full flex items-center justify-start border-t-2 border-gray-200 pt-2'>
+                                <input className='mr-2 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500' placeholder='Type a message' />
+                                <BiSolidSend className='text-indigo-500' size='1.5em'/>
                             </div>
                         </div>
-                        <div className='self-end flex flex-row items-start bg-green-200 rounded-xl p-2 mt-2'>
-                            {/* Profile Picture */}
-                            <div className='flex-shrink-0 h-10 w-10 bg-pp bg-cover rounded-full mr-3 hover:cursor-pointer'/> 
-                            <div>
-                                {/* Name and time */}
-                                <p>You · Now</p> 
-                                {/* Message */}
-                                <p>I'm good, how about you?</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Send a message */}
-                    <div className='w-full flex items-center justify-start border-t-2 border-gray-200 pt-2'>
-                        <input className='mr-2 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500' placeholder='Type a message' />
-                        <BiSolidSend className='text-indigo-500' size='1.5em'/>
-                    </div>
-
-                </div>
+                    }
 
             </div>
 
