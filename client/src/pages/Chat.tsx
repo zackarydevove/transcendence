@@ -31,10 +31,6 @@ const Chat: React.FC = () => {
         setSearch(event.target.value);
     }
 
-    const handleUserChannels = () => {
-        setUserChannels(!userChannels);
-    }
-
     const handleGroupTypeChange = (groupType: string) => {
         setGroupType(groupType);
     }
