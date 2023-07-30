@@ -20,13 +20,17 @@ interface SettingsProps {
   setShowInviteModal: (showInviteModal: boolean) => void;
   setShowLeaveModal: (showLeaveModal: boolean) => void;
   setShowEraseModal: (showEraseModal: boolean) => void;
+  setShowKickModal: (showKickModal: boolean) => void;
+  setShowMuteModal: (showMuteModal: boolean) => void;
+  setShowBanModal: (showBanModal: boolean) => void;
 }
 
 const Settings: FC<SettingsProps> = ({ 
   setSettings, channelName, setChannelName, 
   channelPassword, setChannelPassword, users, 
   kickUser, muteUser, banUser, setShowInviteModal,
-  setShowLeaveModal, setShowEraseModal }) => {
+  setShowLeaveModal, setShowEraseModal, setShowKickModal,
+  setShowMuteModal, setShowBanModal }) => {
 
     const handleChannelNameChange = (e: ChangeEvent<HTMLInputElement>) => setChannelName(e.target.value);
     const handleChannelPasswordChange = (e: ChangeEvent<HTMLInputElement>) => setChannelPassword(e.target.value);
@@ -65,9 +69,12 @@ const Settings: FC<SettingsProps> = ({
                         <div className='h-10 w-10 bg-pp bg-contain rounded-full hover:cursor-pointer'/>
                         <p className='text-gray-700 flex-grow'>{user.username}</p>
                         <div className='flex gap-2'>
-                            <button className='px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-700' onClick={() => kickUser(user.id)}>Kick</button>
-                            <button className='px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-700' onClick={() => muteUser(user.id)}>Mute</button>
-                            <button className='px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700' onClick={() => banUser(user.id)}>Ban</button>
+                            <button className='px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-700' 
+                                onClick={() => setShowKickModal(true)}>Kick</button>
+                            <button className='px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-700'
+                                onClick={() => setShowMuteModal(true)}>Mute</button>
+                            <button className='px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700'
+                                onClick={() => setShowBanModal(true)}>Ban</button>
                         </div>
                     </div>
                     ))}

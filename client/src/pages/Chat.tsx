@@ -10,6 +10,9 @@ import UserChannels from '../components/Chat/UserChannels';
 import InviteUsers from '../components/Chat/InviteUsers';
 import LeaveChannel from '../components/Chat/LeaveChannel';
 import EraseChannel from '../components/Chat/EraseChannel';
+import KickModal from '../components/Chat/KicKModal';
+import MuteModal from '../components/Chat/MuteModal';
+import BanModal from '../components/Chat/BanModal';
 
 interface User {
     id: string;
@@ -34,6 +37,9 @@ const Chat: React.FC = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showEraseModal, setShowEraseModal] = useState(false);
+    const [showKickModal, setShowKickModal] = useState(false);
+    const [showMuteModal, setShowMuteModal] = useState(false);
+    const [showBanModal, setShowBanModal] = useState(false);
 
     // mock data
     const groups: Group[] = [
@@ -125,6 +131,10 @@ const Chat: React.FC = () => {
             {showLeaveModal && <LeaveChannel setModal={() => setShowLeaveModal(false)} />}
             {showEraseModal && <EraseChannel setModal={() => setShowEraseModal(false)} />}
 
+            {showKickModal && <KickModal setModal={() => setShowKickModal(false)} />}
+            {showMuteModal && <MuteModal setModal={() => setShowMuteModal(false)} />}
+            {showBanModal && <BanModal setModal={() => setShowBanModal(false)} />}
+
             <div className='flex items-center justify-center gap-3 h-3/4 w-3/4'>
 
                 {/* Left : User's channels / Joinable channels */}
@@ -174,6 +184,9 @@ const Chat: React.FC = () => {
                                 setShowInviteModal={setShowInviteModal}
                                 setShowLeaveModal={setShowLeaveModal}
                                 setShowEraseModal={setShowEraseModal}
+                                setShowKickModal={setShowKickModal}
+                                setShowMuteModal={setShowMuteModal}
+                                setShowBanModal={setShowBanModal}
                             />
                         :
                             <Discussion setSettings={setSettings}/>
