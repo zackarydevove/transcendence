@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC } from 'react';
+import React, { useState, ChangeEvent, FC } from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
 
 interface User {
@@ -17,12 +17,16 @@ interface SettingsProps {
   kickUser: (userId: string) => void;
   muteUser: (userId: string) => void;
   banUser: (userId: string) => void;
+  setShowInviteModal: (showInviteModal: boolean) => void;
+  setShowLeaveModal: (showLeaveModal: boolean) => void;
+  setShowEraseModal: (showEraseModal: boolean) => void;
 }
 
 const Settings: FC<SettingsProps> = ({ 
   setSettings, channelName, setChannelName, 
   channelPassword, setChannelPassword, users, 
-  kickUser, muteUser, banUser }) => {
+  kickUser, muteUser, banUser, setShowInviteModal,
+  setShowLeaveModal, setShowEraseModal }) => {
 
     const handleChannelNameChange = (e: ChangeEvent<HTMLInputElement>) => setChannelName(e.target.value);
     const handleChannelPasswordChange = (e: ChangeEvent<HTMLInputElement>) => setChannelPassword(e.target.value);
@@ -54,11 +58,11 @@ const Settings: FC<SettingsProps> = ({
             </div>
             <label className='text-gray-500'>Users:</label>
             <div className='overflow-y-auto max-h-[50vh]'>
-                {/* This div is for the scrollable user list */}
+                {/* Channel members list */}
                 <div className='flex flex-col'>
                     {users.map((user, index) => (
                     <div key={index} className='flex items-center justify-between gap-4 pr-5 py-1'>
-                        <div className='h-10 w-10 bg-pp bg-contain rounded-full'/>
+                        <div className='h-10 w-10 bg-pp bg-contain rounded-full hover:cursor-pointer'/>
                         <p className='text-gray-700 flex-grow'>{user.username}</p>
                         <div className='flex gap-2'>
                             <button className='px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-700' onClick={() => kickUser(user.id)}>Kick</button>
@@ -69,11 +73,23 @@ const Settings: FC<SettingsProps> = ({
                     ))}
                 </div>
             </div>
+            {/* Channel setting buttons */}
             <div className='flex flex-col gap-4 pt-4'>
-                {/* This div is for non-scrollable buttons */}
-                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75' onClick={inviteUsers}>Invite Users</button>
-                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75' onClick={leaveChannel}>Leave Channel</button>
-                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75' onClick={eraseChannel}>Erase Channel</button>
+                {/* Invite users */}
+                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75' 
+                    onClick={() => setShowInviteModal(true)}>
+                        Invite Users
+                </button>
+                {/* Leave channel */}
+                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75'
+                    onClick={() => setShowLeaveModal(true)}>
+                        Leave Channel
+                </button>
+                {/* Erase channel */}
+                <button className='w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75'
+                    onClick={() => setShowEraseModal(true)}>
+                        Erase Channel
+                </button>
             </div>
         </div>
     )

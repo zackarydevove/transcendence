@@ -7,6 +7,9 @@ import CreateChannelButton from '../components/Chat/CreateChannelButton';
 import JoinableChannels from '../components/Chat/JoinableChannels';
 import ToggleChannel from '../components/Chat/ToggleChannel';
 import UserChannels from '../components/Chat/UserChannels';
+import InviteUsers from '../components/Chat/InviteUsers';
+import LeaveChannel from '../components/Chat/LeaveChannel';
+import EraseChannel from '../components/Chat/EraseChannel';
 
 interface User {
     id: string;
@@ -28,6 +31,9 @@ const Chat: React.FC = () => {
     const [channelPassword, setChannelPassword] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [users, setUsers] = useState<any[]>([]);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
+    const [showEraseModal, setShowEraseModal] = useState(false);
 
     // mock data
     const groups: Group[] = [
@@ -113,6 +119,11 @@ const Chat: React.FC = () => {
                     />
                 : null
             }
+        
+
+            {showInviteModal && <InviteUsers setModal={() => setShowInviteModal(false)} />}
+            {showLeaveModal && <LeaveChannel setModal={() => setShowLeaveModal(false)} />}
+            {showEraseModal && <EraseChannel setModal={() => setShowEraseModal(false)} />}
 
             <div className='flex items-center justify-center gap-3 h-3/4 w-3/4'>
 
@@ -160,6 +171,9 @@ const Chat: React.FC = () => {
                                 kickUser={kickUser} 
                                 muteUser={muteUser} 
                                 banUser={banUser}
+                                setShowInviteModal={setShowInviteModal}
+                                setShowLeaveModal={setShowLeaveModal}
+                                setShowEraseModal={setShowEraseModal}
                             />
                         :
                             <Discussion setSettings={setSettings}/>
