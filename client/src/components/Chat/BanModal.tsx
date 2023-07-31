@@ -1,10 +1,10 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 interface BanModalProps {
     setModal: (val: boolean) => void;
 }
 
-const BanModal: FC<BanModalProps> = ({ setModal }) => {
+const BanModal: React.FC<BanModalProps> = ({ setModal }) => {
     // const handleBan = (e) => {
 
     // }

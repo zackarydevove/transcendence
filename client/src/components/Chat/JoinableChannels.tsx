@@ -1,10 +1,17 @@
 import React from 'react'
 import { FaSearch } from 'react-icons/fa';
+import { BsFillPeopleFill, BsFillUnlockFill } from 'react-icons/bs';
+import { BiSolidLockAlt } from 'react-icons/bi';
+interface Group {
+    username: string;
+    type: string;
+    password: string;
+}
 
 interface JoinableChannelsProps {
     search: string;
     handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    groups: { username: string }[];
+    groups: Group[];
 }
 
 const JoinableChannels: React.FC<JoinableChannelsProps> = ({ search, handleSearchChange, groups }) => {
@@ -24,12 +31,23 @@ const JoinableChannels: React.FC<JoinableChannelsProps> = ({ search, handleSearc
 
         {/* List of user's groups */}
         <div className='w-full overflow-y-auto'>
-            {groups.map((friend, index) => (
+            {groups.map((group, index) => (
                 <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer'>
                     {/* Group name */}
                     <div className='flex items-center'>
-                        <p className='text-gray-700'>{friend.username}</p>
+                        <p className='text-gray-700'>{group.username}</p>
                     </div>
+                    {
+                        group.type === "public" ?
+                        <BsFillPeopleFill />
+                        :
+                        (
+                            group.type === "protected" ?
+                            <BsFillUnlockFill />
+                            :
+                            <BiSolidLockAlt />
+                        )
+                    }
                 </div>
             ))}
         </div>

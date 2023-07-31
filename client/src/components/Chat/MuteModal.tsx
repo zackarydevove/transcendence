@@ -1,10 +1,10 @@
-import React, { FC, ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 interface MuteModalProps {
     setModal: (val: boolean) => void;
 }
 
-const MuteModal: FC<MuteModalProps> = ({ setModal }) => {
+const MuteModal: React.FC<MuteModalProps> = ({ setModal }) => {
     const [minutes, setMinutes] = useState(1);
 
     // const handleMute = (e) => {

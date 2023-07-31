@@ -1,10 +1,10 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 interface LeaveChannelProps {
     setModal: (val: boolean) => void;
 }
 
-const LeaveChannel: FC<LeaveChannelProps> = ({ setModal }) => {
+const LeaveChannel: React.FC<LeaveChannelProps> = ({ setModal }) => {
     const handleLeaveChannel = () => {
         // implement the logic to leave the channel
     }

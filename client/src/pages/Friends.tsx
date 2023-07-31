@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaComment, FaBan, FaTrash, FaGamepad, FaSearch } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 import { BiSolidSend } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
 import BackButton from '../components/BackButton';
@@ -100,7 +100,7 @@ const Friends: React.FC = () => {
                                     <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-indigo-200 '>
                                         {/* Profile Picture and Username */}
                                         <div className='flex items-center'>
-                                            <div className='h-12 w-12 bg-gray-200 rounded-full mr-4' />
+                                            <div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4' />
                                             <p className='text-gray-700'>{friend.username}</p>
                                         </div>
                                         {/* Status */}
@@ -162,7 +162,7 @@ const Friends: React.FC = () => {
                                     <div key={index} className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-indigo-200 '>
                                         {/* Profile Picture and Username */}
                                         <div className='flex items-center'>
-                                            <div className='h-12 w-12 bg-gray-200 rounded-full mr-4' />
+                                            <div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4' />
                                             <p className='text-gray-700'>{friend.username}</p>
                                         </div>
                                         {/* Status */}
@@ -190,8 +190,8 @@ const Friends: React.FC = () => {
                                             <BsThreeDots className='text-gray-500 cursor-pointer' onClick={() => toggleDropdown(index)} />
                                             {dropdownOpen === index && (
                                                 <div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
+                                                    <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Add friend</a>
                                                     <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</a>
-                                                    <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Delete friend</a>
                                                     <a href="#" className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Block friend</a>
                                                 </div>
                                             )}

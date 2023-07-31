@@ -22,6 +22,8 @@ interface User {
 
 interface Group {
   username: string;
+  type: string;
+  password: string;
 }
 
 const Chat: React.FC = () => {
@@ -43,16 +45,16 @@ const Chat: React.FC = () => {
 
     // mock data
     const groups: Group[] = [
-        { username: "Group 1" },
-        { username: "Group 2" },
-        { username: "Group 3" },
-        { username: "Group 4" },
-        { username: "Group 5" },
-        { username: "Group 6" },
-        { username: "Group 7" },
-        { username: "Group 8" },
-        { username: "Group 9" },
-        { username: "Group 10" },
+        { username: "Group 1", type: "public", password: "" },
+        { username: "Group 2", type: "private", password: "" },
+        { username: "Group 3", type: "protected", password: "bob123" },
+        { username: "Group 4", type: "public", password: "" },
+        { username: "Group 5", type: "public", password: "" },
+        { username: "Group 6", type: "protected", password: "hello4" },
+        { username: "Group 7", type: "public", password: "" },
+        { username: "Group 8", type: "public", password: "" },
+        { username: "Group 9", type: "private", password: "" },
+        { username: "Group 10", type: "public", password: "" },
     ];
 
     // mock data
@@ -175,7 +177,7 @@ const Chat: React.FC = () => {
                                 setSettings={setSettings} 
                                 channelName={channelName} 
                                 setChannelName={setChannelName} 
-                                channelPassword={channelPassword} 
+                                channelPassword={channelPassword}   
                                 setChannelPassword={setChannelPassword} 
                                 users={users} 
                                 kickUser={kickUser} 

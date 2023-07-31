@@ -1,10 +1,10 @@
-import React, { ChangeEvent, FC } from 'react';
+import React, { ChangeEvent } from 'react';
 
 interface InviteUsersProps {
     setModal: (val: boolean) => void;
 }
 
-const InviteUsers: FC<InviteUsersProps> = ({ setModal }) => {
+const InviteUsers: React.FC<InviteUsersProps> = ({ setModal }) => {
     const handleUserInvite = (e: ChangeEvent<HTMLInputElement>) => {
         // implement the logic to invite users
     }

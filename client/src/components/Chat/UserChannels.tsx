@@ -3,6 +3,8 @@ import { FaSearch } from 'react-icons/fa';
 
 interface Group {
     username: string;
+    type: string;
+    password: string;
 }
 
 interface UserChannelsProps {

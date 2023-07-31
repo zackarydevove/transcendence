@@ -1,10 +1,10 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 interface KickModalProps {
     setModal: (val: boolean) => void;
 }
 
-const KickModal: FC<KickModalProps> = ({ setModal }) => {
+const KickModal: React.FC<KickModalProps> = ({ setModal }) => {
 
     return (
         <div className='absolute z-20 top-0 left-0 w-screen h-screen bg-black bg-opacity-40 flex justify-center items-center'

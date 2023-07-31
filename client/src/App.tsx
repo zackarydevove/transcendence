@@ -9,7 +9,7 @@ import Chat from './pages/Chat';
 import Play from './pages/Play';
 import Leaderboard from './pages/Leaderboard';
 
-function App() {
+const App = (): JSX.Element => {
   return (
     <Router>
       <Routes>

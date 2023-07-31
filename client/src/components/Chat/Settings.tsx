@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FC } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
 
 interface User {
@@ -25,7 +25,7 @@ interface SettingsProps {
   setShowBanModal: (showBanModal: boolean) => void;
 }
 
-const Settings: FC<SettingsProps> = ({ 
+const Settings: React.FC<SettingsProps> = ({ 
   setSettings, channelName, setChannelName, 
   channelPassword, setChannelPassword, users, 
   kickUser, muteUser, banUser, setShowInviteModal,

@@ -1,10 +1,10 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 interface EraseChannelProps {
     setModal: (val: boolean) => void;
 }
 
-const EraseChannel: FC<EraseChannelProps> = ({ setModal }) => {
+const EraseChannel: React.FC<EraseChannelProps> = ({ setModal }) => {
     const handleEraseChannel = () => {
         // implement the logic to erase the channel
     }
