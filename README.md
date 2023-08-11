@@ -1,2 +1,2 @@
 # transcendence
-web
+soon
