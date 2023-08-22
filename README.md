@@ -1,2 +1,2 @@
 # transcendence
-coming soon
+soon
