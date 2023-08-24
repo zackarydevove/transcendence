@@ -1,3 +1,5 @@
+The project is on going
+
 # To start the project
 
 - clone the repo
