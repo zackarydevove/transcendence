@@ -1,4 +1,4 @@
-The project is on going
+The project is on going, coming soon
 
 # To start the project
 
