@@ -15,6 +15,7 @@ import KickModal from '@/components/Chat/KicKModal';
 import MuteModal from '@/components/Chat/MuteModal';
 import BanModal from '@/components/Chat/BanModal';
 import JoinModal from '@components/Chat/JoinModal';
+import AdminModal from '@components/Chat/AdminModal';
 import { useStore } from '@/state/store';
 
 const Chat: React.FC = () => {
@@ -28,6 +29,7 @@ const Chat: React.FC = () => {
         showMuteModal,
         showBanModal,
 		showJoinModal,
+		showAdminModal,
         userChannels,
         settings
     } = useStore(state => state.chat);
@@ -44,6 +46,7 @@ const Chat: React.FC = () => {
             {showLeaveModal && <LeaveChannel/>}
             {showEraseModal && <EraseChannel/>}
 
+            {showAdminModal && <AdminModal/>}
             {showKickModal && <KickModal/>}
             {showMuteModal && <MuteModal/>}
             {showBanModal && <BanModal/>}

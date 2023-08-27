@@ -43,6 +43,34 @@ export default class FriendsService {
 	}
 
 	async addFriend(userId: string, friendId: string) {
+		// Fetch the friend's blocked users
+		const friend = await this.databaseService.user.findUnique({
+			where: { id: friendId },
+			select: {
+				blockedFriends: true
+			}
+		});
+	
+		// Check if the friend has blocked the user
+		if (friend && friend.blockedFriends.includes(userId)) {
+			return { blocked: true };
+		}
+	
+		// Check if they are already friends
+		const existingFriendship = await this.databaseService.friendship.findFirst({
+			where: {
+				OR: [
+					{ user1Id: userId, user2Id: friendId },
+					{ user1Id: friendId, user2Id: userId }
+				]
+			}
+		});
+	
+		if (existingFriendship) {
+			return { already: true };
+		}
+	
+		// If they are not blocked and not already friends, create the friendship
 		return this.databaseService.friendship.create({
 			data: {
 				user1Id: userId,
@@ -50,6 +78,7 @@ export default class FriendsService {
 			}
 		});
 	}
+	
 
 	async getUsers() {
         return this.databaseService.user.findMany();
@@ -92,7 +121,7 @@ export default class FriendsService {
 			where: { id: userId },
 			data: {
 				blockedFriends: {
-				push: blockedId
+					push: blockedId
 				}
 			}
 		});
@@ -130,7 +159,7 @@ export default class FriendsService {
 			where: { id: friendshipId },
 			select: { id: true }
 		});
-	
+
 		if (!exist) {
 			throw new Error('Friendship not found');
 		}
@@ -175,6 +204,16 @@ export default class FriendsService {
 			}
 		});
 	
-		return friendship ? friendship : null;
+		return friendship ? friendship : { exist: false };
+	}
+
+	async getFriendshipFromId(friendshipId: string) {
+		const friendship = await this.databaseService.friendship.findFirst({
+			where: {
+				id: friendshipId
+			}
+		});
+	
+		return friendship ? { exist: true } : { exist: false };
 	}
 }

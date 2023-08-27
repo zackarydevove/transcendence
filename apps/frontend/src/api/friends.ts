@@ -101,16 +101,14 @@ export async function unblockUser (userId: string, blockedId: string) {
 };
 
 // Return list of blocked users for a user
-export async function getBlockedUsers (userId: string) {
-	const response = await fetch(`${BASE_URL}/friends/blocked-users`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ userId })
-	});
-
-	return response.json();
+export async function getBlockedUsers(userId: string) {
+    const response = await fetch(`${BASE_URL}/friends/blocked-users/${userId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+    return response.json();
 };
 
 // Return friendship ID using the usernames of the current user and friend user
@@ -124,3 +122,14 @@ export async function getFriendship(currentUserId: string, friendUserId: string)
 
     return response.json();
 };
+
+export async function checkIfFriendshipExists(friendshipId: string) {
+    const response = await fetch(`${BASE_URL}/friends/${friendshipId}/exist`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    return response.json();
+}

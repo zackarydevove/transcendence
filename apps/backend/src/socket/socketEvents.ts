@@ -2,6 +2,7 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, WsException } from
 import { Server, Socket } from "socket.io";
 import ChatService from "src/chat/chat.service";
 import FriendsService from "src/friends/friends.service";
+import DatabaseService from "src/database/database.service";
 
 @WebSocketGateway({
     cors: {

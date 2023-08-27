@@ -4,11 +4,12 @@ import { BiSolidSend } from 'react-icons/bi';
 import MessageReceiver from '@components/Chat/MessageReceiver';
 import MessageSender from '@components/Chat/MessageSender';
 import { useStore } from '@/state/store';
-import { getFriendshipMessages, sendFriendMessage } from '@api/friends';
+import { getFriendshipMessages, sendFriendMessage, checkIfFriendshipExists } from '@api/friends';
 import socket from '../../../socket';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { FriendMessage } from '@interface/Interface';
 import { messageDate } from '@utils/formatDate';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const FriendChat: React.FC = () => {
     const [messageContent, setMessageContent] = useState<string>('');
@@ -19,6 +20,7 @@ const FriendChat: React.FC = () => {
 	} = useStore(state => state.friends);
 
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,6 +58,15 @@ const FriendChat: React.FC = () => {
 	const handleSendMessage = async () => {
 		if (messageContent.trim() && activeFriendship) {
 			try {
+				const res = await checkIfFriendshipExists(activeFriendship.id);
+				console.log("res: ", res);
+				if (!res.exist) {
+					notifcationCtx.enqueueNotification({
+						message: `You can't send message as you are not friends anymore`,
+						type: "default"
+					});
+					return ;
+				}
 				await sendFriendMessage(activeFriendship.id, profile.id, messageContent);
 				setMessageContent('');
 			} catch (error) {

@@ -12,7 +12,7 @@ const Settings: React.FC = () => {
         setShowLeaveModal, setShowEraseModal,
         setShowKickModal, setShowMuteModal, setShowBanModal,
 		activeChannel, setTargetMember, chatMembers, setChatMembers,
-		setActiveChannel
+		setActiveChannel, setShowAdminModal
     } = useStore(state => state.chat);
 	
 	useEffect(() => {
@@ -35,6 +35,8 @@ const Settings: React.FC = () => {
 			setShowKickModal(true)
 		} else if (action == "mute") {
 			setShowMuteModal(true)
+		} else if (action == "admin") {
+			setShowAdminModal(true)
 		} else {
 			setShowBanModal(true)
 		}
@@ -121,6 +123,8 @@ const Settings: React.FC = () => {
                         <p className='text-gray-700 flex-grow'>{member.user.username}</p>
                         <p className='text-gray-500 flex-grow text-sm'>{member.role}</p>
                         <div className='flex gap-2'>
+                            <button className='px-2 py-1 bg-amber-500 text-white rounded hover:cursor-pointer hover:bg-amber-700' 
+                                onClick={() => handleAction("admin", member)}>Admin</button>
                             <button className='px-2 py-1 bg-blue-500 text-white rounded hover:cursor-pointer hover:bg-blue-700' 
                                 onClick={() => handleAction("kick", member)}>Kick</button>
                             <button className='px-2 py-1 bg-yellow-500 text-white rounded hover:cursor-pointer hover:bg-yellow-700'

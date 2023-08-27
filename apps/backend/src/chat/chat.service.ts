@@ -67,7 +67,11 @@ export default class ChatService {
 
 	// Fetch all chats from the database
 	async getAllChats(userId: string) {
-		const chats = await this.databaseService.chat.findMany();
+		const chats = await this.databaseService.chat.findMany({
+			include: {
+				invited: true
+			}
+		});
 		return chats;
 	}
 
@@ -82,7 +86,7 @@ export default class ChatService {
 		});
 
 		if (!chat) {
-			throw new Error('Chat not found');
+			return { error : 'Chat not found' };
 		}
 
 		return chat;
@@ -93,12 +97,24 @@ export default class ChatService {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
 		const user = await this.databaseService.user.findUnique({ where: { id: userId } });
 
-		if (!chat) throw new Error('Chat not found');
-		if (!user) throw new Error('User not found');
+		if (!chat) return { error : 'Chat not found' };
+		if (!user) return { error : 'User not found' };
+
+		// Check if the user is already a member of the chat
+		const existingMember = await this.databaseService.member.findFirst({
+			where: {
+				chatId: chatId,
+				userId: userId
+			}
+		});
+
+		if (existingMember) {
+			return { alreadyMember : true };
+		}
 
 		// Check if the user is banned
     	if (chat.banned.includes(userId)) {
-	        throw new Error('This user is banned from the chat.');
+	        return { error : 'This user is banned from the chat.' };
     	}
 
 		const newMember = await this.databaseService.member.create({
@@ -132,7 +148,7 @@ export default class ChatService {
 		});
 
 		if (!member) {
-			throw new Error('Member not found in the chat');
+			return { error : 'Member not found in the chat' };
 		}
 
 		// Check the number of members in the chat
@@ -146,6 +162,35 @@ export default class ChatService {
 		if (memberCount === 1) {
 			return await this.deleteChat(chatId, userId)
 		}
+
+		if (member.role === 'creator') {
+			// Find the oldest member that isn't the creator
+			const oldestMember = await this.databaseService.member.findFirst({
+				where: {
+					chatId: chatId,
+					NOT: {
+						userId: userId
+					}
+				},
+				orderBy: {
+					id: 'asc'  // Assuming that the ID is chronological. If there's a 'joinedAt' field or similar, use that.
+				}
+			});
+		
+			if (!oldestMember) {
+				return { error : 'No other members found in the chat' }; // This should not occur due to the memberCount check, but it's a safety measur };
+			}
+		
+			// Update the oldest member's role to creator
+			await this.databaseService.member.update({
+				where: {
+					id: oldestMember.id
+				},
+				data: {
+					role: 'creator'
+				}
+			});
+		}		
 
 		// Else, just delete the member
 		const deletedMember = await this.databaseService.member.delete({
@@ -161,7 +206,7 @@ export default class ChatService {
 	async deleteChat(chatId: string, userId: string) {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
 	
-		if (!chat) throw new Error('Chat not found');
+		if (!chat) return { error : 'Chat not found' };
 	
 		// Check user's role for the chat
 		const member = await this.databaseService.member.findFirst({
@@ -171,7 +216,7 @@ export default class ChatService {
 			}
 		});
 	
-		if (!member) throw new Error('User is not a member of this chat');
+		if (!member) return { error : 'User is not a member of this chat' };
 	
 
 		const memberCount = await this.databaseService.member.count({
@@ -181,7 +226,7 @@ export default class ChatService {
 		});
 
 		if (memberCount > 1 && member.role !== UserRole.creator && member.role !== UserRole.admin) {
-			throw new Error('Only the creator or admin can delete the chat');
+			return { error : 'Only the creator or admin can delete the chat' };
 		}
 
 		await this.databaseService.member.deleteMany({
@@ -216,8 +261,8 @@ export default class ChatService {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
 		const user = await this.databaseService.user.findUnique({ where: { id: userId } });
 	
-		if (!chat) throw new Error('Chat not found');
-		if (!user) throw new Error('User not found');
+		if (!chat) return { error : 'Chat not found' };
+		if (!user) return { error : 'User not found' };
 	
 		const newMessage = await this.databaseService.message.create({
 		data: {
@@ -264,7 +309,7 @@ export default class ChatService {
 	async updateChatName(chatId: string, newChatName: string) {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
 		
-		if (!chat) throw new Error('Chat not found');
+		if (!chat) return { error : 'Chat not found' };
 		
 		const updatedChat = await this.databaseService.chat.update({
 			where: { id: chatId },
@@ -278,7 +323,7 @@ export default class ChatService {
 	async updateChatPassword(chatId: string, newPassword: string) {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
 	
-		if (!chat) throw new Error('Chat not found');
+		if (!chat) return { error : 'Chat not found' };
 	
 		const updatedChat = await this.databaseService.chat.update({
 			where: { id: chatId },
@@ -302,7 +347,7 @@ export default class ChatService {
 		});
 
 		if (!getAdmin)
-			throw new Error('User is not a member of the chat');
+			return { error : 'User is not a member of the chat' };
 
 		// Check if adminUserId is either creator or admin
 		const checkAdmin = await this.databaseService.member.findUnique({
@@ -315,7 +360,7 @@ export default class ChatService {
 		});
 	
 		if (!checkAdmin || (checkAdmin.role !== 'admin' && checkAdmin.role !== 'creator')) {
-			throw new Error('Only admin or creator can ban users.');
+			return { error : 'Only admin or creator can ban users.' };
 		}
 	
 		// Get the chat
@@ -325,7 +370,7 @@ export default class ChatService {
 			}
 		});
 	
-		if (!chatToUpdate) throw new Error('Chat not found');
+		if (!chatToUpdate) return { error : 'Chat not found' };
 	
 		// Remove target from the chat
 		const user = await this.deleteMember(chatId, targetUserId);
@@ -342,7 +387,52 @@ export default class ChatService {
 			}
 		});
 	
-		return updatedChat;
+		return { data: updatedChat, ok: true };
+	}
+
+	async unbanUserFromChat(chatId: string, adminUserId: string, targetUserId: string) {
+		// Ensure that the person making the request is either the creator or an admin
+		const admin = await this.databaseService.member.findFirst({
+			where: {
+				userId: adminUserId,
+				chatId: chatId
+			},
+			select: {
+				role: true
+			}
+		});
+	
+		if (!admin || (admin.role !== 'admin' && admin.role !== 'creator')) {
+			return { error: 'Only admin or creator can unban users.' };
+		}
+	
+		const chatToUpdate = await this.databaseService.chat.findUnique({
+			where: {
+				id: chatId
+			}
+		});
+	
+		if (!chatToUpdate) return { error: 'Chat not found' };
+	
+		// Check if user is banned
+		if (!chatToUpdate.banned.includes(targetUserId)) {
+			return { error: 'User is not banned.' };
+		}
+
+		// Remove the user from the banned array
+		const updatedBannedList = chatToUpdate.banned.filter(userId => userId !== targetUserId);
+
+		// Update the chat with the modified banned array
+		const updatedChat = await this.databaseService.chat.update({
+			where: {
+				id: chatId
+			},
+			data: {
+				banned: updatedBannedList
+			}
+		});
+
+		return { data: updatedChat, ok: true};
 	}
 
 	// Kick user from chat
@@ -360,7 +450,7 @@ export default class ChatService {
 		});
 	
 		if (!checkAdmin || (checkAdmin.role !== 'admin' && checkAdmin.role !== 'creator')) {
-			throw new Error('Only admin or creator can kick users.');
+			return { error : 'Only admin or creator can kick users.' };
 		}
   
 		return this.deleteMember(chatId, targetUserId);
@@ -378,7 +468,7 @@ export default class ChatService {
 		});
 	
 		if (isMember) {
-			throw new Error('The target user is already a member of this chat.');
+			return { error : 'The target user is already a member of this chat.' }
 		}
 	
 		// Check if the user is already invited
@@ -390,7 +480,7 @@ export default class ChatService {
 		});
 	
 		if (isInvited) {
-			throw new Error('The target user is already invited to this chat.');
+			return { error : 'The target user is already invited to this chat.' };
 		}
 	
 		// Otherwise, add the user to the invite table
@@ -401,7 +491,30 @@ export default class ChatService {
 		}
 		});
 	
-		return inviteRecord;
+		return { data: inviteRecord, ok: true };
+	}
+
+	async uninviteUserFromChat(chatId: string, inviterUserId: string, targetUser: string) {
+		// Check if the invite exists
+		const invite = await this.databaseService.invite.findFirst({
+			where: {
+				userId: targetUser,
+				chatId: chatId
+			}
+		});
+	
+		if (!invite) {
+			return { error: 'The target user was not invited to this chat.' };
+		}
+	
+		// Delete the invite
+		const deletedInvite = await this.databaseService.invite.delete({
+			where: {
+				id: invite.id
+			}
+		});
+	
+		return { ok: true };
 	}
 
 	async muteMember(chatId: string, adminUserId: string, targetUserId: string, muteDuration: number) {
@@ -418,7 +531,7 @@ export default class ChatService {
 		});
 
 		if (!memberRole || (memberRole.role !== 'admin' && memberRole.role !== 'creator')) {
-			throw new Error('Only admin or creator can mute users.');
+			return { error : 'Only admin or creator can mute users.' };
 		}
 
 		// Calculate mute end time
@@ -436,7 +549,7 @@ export default class ChatService {
 		});
 		
 		if (!targetMember) {
-			throw new Error('The target user is not a member of this chat.');
+			return { error : 'The target user is not a member of this chat.' };
 		}
 
 		// Mute the target member
@@ -464,7 +577,7 @@ export default class ChatService {
 		});
 	  
 		if (!member) {
-			throw new Error('User is not a member of this chat.');
+			return { error : 'User is not a member of this chat.' };
 		}
 	  
 		if (member.mutedUntil && member.mutedUntil > new Date()) {
@@ -491,7 +604,7 @@ export default class ChatService {
 		});
 	  
 		if (!memberRole || (memberRole.role !== 'admin' && memberRole.role !== 'creator')) {
-		  	throw new Error('Only admin or creator can unmute users.');
+		  	return { error : 'Only admin or creator can unmute users.' };
 		}
 
 		// Check if the target user is actually muted
@@ -507,11 +620,11 @@ export default class ChatService {
 		});
 	  
 		if (!targetMember) {
-		  	throw new Error('The target user is not a member of this chat.');
+		  	return { error : 'The target user is not a member of this chat.' };
 		}
 	  
 		if (!targetMember.mutedUntil || targetMember.mutedUntil <= new Date()) {
-		  	throw new Error('The target user is not muted.');
+		  	return { error : 'The target user is not muted.' };
 		}
 	  
 		// Unmute the target member by setting the mutedUntil field to null
@@ -526,4 +639,67 @@ export default class ChatService {
 	  
 		return unmutedMember;
 	}
+
+	async setMemberAsAdmin(chatId: string, adminUserId: string, targetUserId: string) {
+		// Check if adminUserId is either creator or admin
+		const memberRole = await this.databaseService.member.findFirst({
+			where: {
+				userId: adminUserId,
+				chatId: chatId
+			},
+			select: {
+				role: true
+			}
+		});
+
+		if (!memberRole || (memberRole.role !== 'admin' && memberRole.role !== 'creator')) {
+			return { status: 'Only admin or creator can unmute users.' };
+		}
+	
+		// Check if the target user is actually muted
+		const targetMember = await this.databaseService.member.findFirst({
+			where: {
+				userId: targetUserId,
+				chatId: chatId
+			},
+			select: {
+				id: true,
+				role: true
+			}
+		});
+
+		if (!targetMember || targetMember.role === 'admin' || targetMember.role === 'creator') {
+			return { status: 'Member is already an admin or creator, or not found.' };
+		}
+	
+		await this.databaseService.member.update({
+			where: { id: targetMember.id },
+			data: { role: 'admin' }
+		});
+	
+		return { status: 'Member has been set as admin successfully.' };
+	}
+
+	async getBannedUsers(chatId: string) {
+		return await this.databaseService.chat.findUnique({
+			where: {
+				id: chatId,
+			},
+			select: {
+				banned: true,
+			},
+		});
+	  }
+	  
+	async getInvitedUsers(chatId: string) {
+		return await this.databaseService.invite.findMany({
+			where: {
+				chatId: chatId,
+			},
+			include: {
+				user: true,
+			},
+		});
+	  }
+	
 }

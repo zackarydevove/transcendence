@@ -85,6 +85,15 @@ export class ChatController {
 		return this.chatService.banUserFromChat(chatId, adminUserId, targetUserId);
 	}
 
+    @Patch(':chatId/unban/:targetUserId')
+    async unbanUserFromChat(
+        @Param('chatId') chatId: string,
+        @Body('adminUserId') adminUserId: string,
+        @Param('targetUserId') targetUserId: string
+    ) {
+        return this.chatService.unbanUserFromChat(chatId, adminUserId, targetUserId);
+    }
+
 	// get all chats user is in
 	@Get(':userId/get-chats')
 	async getUserChats(@Param('userId') userId: string) {
@@ -133,6 +142,16 @@ export class ChatController {
 	) {
 		return this.chatService.inviteUserToChat(chatId, inviterUserId, targetUserId);
 	}
+
+	// add user in the invite list of chat
+    @Patch(':chatId/uninvite/:targetUserId')
+    async uninviteUserFromChat(
+        @Param('chatId') chatId: string,
+        @Body('inviterUserId') inviterUserId: string,
+        @Param('targetUserId') targetUserId: string
+    ) {
+        return this.chatService.uninviteUserFromChat(chatId, inviterUserId, targetUserId);
+    }
 	
 	// mute a member in chat
 	@Patch(':chatId/mute/:targetUserId')
@@ -163,5 +182,31 @@ export class ChatController {
 		@Param('targetUserId') targetUserId: string
 	) {
 		return this.chatService.unmuteMember(chatId, adminUserId, targetUserId);
+	}
+
+	// Set a member as admin
+    @Post(':chatId/setAdmin/:targetUserId')
+    async setMemberAsAdmin(
+		@Param('chatId') chatId: string,
+		@Body('adminUserId') adminUserId: string,
+		@Param('targetUserId') targetUserId: string
+	) {
+        return this.chatService.setMemberAsAdmin(chatId, adminUserId, targetUserId);
+    }
+
+	// check if a member is muted
+	@Get(':chatId/banned')
+	async getBannedUsers(
+		@Param('chatId') chatId: string,
+	) {
+		return this.chatService.getBannedUsers(chatId);
+	}
+
+	// check if a member is muted
+	@Get(':chatId/invited')
+	async getInvitedUsers(
+		@Param('chatId') chatId: string,
+	) {
+		return this.chatService.getInvitedUsers(chatId);
 	}
 }

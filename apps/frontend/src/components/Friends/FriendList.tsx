@@ -4,11 +4,12 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { getFriends, addFriend, deleteFriend, blockUser, unblockUser, getBlockedUsers, getFriendship, getUsers } from '@api/friends';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import { User } from '@interface/Interface';
 
 const FriendList: React.FC = () => {
 	const [fetch, setFetch] = useState<boolean>(true);
     const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
-    const [fetchBlock, setFetchBlockedUsers] = useState<string[]>([]);
     const {
 			dropdownOpen,
 			setDropdownOpen,
@@ -19,6 +20,7 @@ const FriendList: React.FC = () => {
 			setActiveFriendship
 	} = useStore(state => state.friends);
 
+	const notifcationCtx = useNotificationContext();
 	const profile = useUserContext((state) => state.profile);
 
 	const toggleDropdown = (event: any, index: number) => {
@@ -50,28 +52,25 @@ const FriendList: React.FC = () => {
 		}
     };
 
+	const fetchBlockedUsers = async () => {
+		try {
+			const result = await getBlockedUsers(profile.id);
+			setBlockedUsers(result);  // Assuming result is an array of usernames that are blocked
+		} catch (error) {
+			console.error("Failed to fetch blocked users:", error);
+		}
+	}
+
 	// get friend or user list
     useEffect(() => {
         fetchList();
+        fetchBlockedUsers();
     }, [fetch, friendList]);
 
-    // Fetch the blocked users when component mounts
-    // useEffect(() => {
-    //     async function fetchBlockedUsers() {
-    //         try {
-    //             const result = await getBlockedUsers(profile.id);
-    //             setBlockedUsers(result);  // Assuming result is an array of usernames that are blocked
-    //         } catch (error) {
-    //             console.error("Failed to fetch blocked users:", error);
-    //         }
-    //     }
-    //     fetchBlockedUsers();
-    // }, [fetchBlock]);
-
 	// check if a profile is blocked to show "unblock" instead
-    const isUserBlocked = (username: string) => {
-        return blockedUsers.includes(username);
-    };
+	const isUserBlocked = (friendId: string) => {
+		return blockedUsers.includes(friendId);
+	};
 
 	// for the searchbar
 	const filteredList = friends.filter(friend => 
@@ -89,9 +88,30 @@ const FriendList: React.FC = () => {
 	};
 
 	// Add user to friend
-	async function handleAddFriend(friendId: string) {
+	async function handleAddFriend(friend: User) {
+		setDropdownOpen(-1);
+		if (isUserBlocked(friend.id)) {
+			notifcationCtx.enqueueNotification({
+				message: `You can't add ${friend.username} because he is blocked.`,
+				type: "default"
+			});
+			return ;
+		}
 		try {
-			const updatedUser = await addFriend(profile.id, friendId);
+			const updatedUser = await addFriend(profile.id, friend.id);
+			if (updatedUser.blocked) {
+				notifcationCtx.enqueueNotification({
+					message: `You can't add ${friend.username} because he blocked you.`,
+					type: "default"
+				});
+				return ;
+			}
+			else if (updatedUser.already) {
+				notifcationCtx.enqueueNotification({
+					message: `${friend.username} is already your friend.`,
+					type: "default"
+			});
+			}
 			setFetch(!fetch);
 		} catch (error) {
 			console.error("Failed to add friend: ", error);
@@ -100,6 +120,7 @@ const FriendList: React.FC = () => {
 
     // Delete user from friend
     const handleDeleteFriend = async (friendId: string) => {
+		setDropdownOpen(-1);
         try {
             const updatedUser = await deleteFriend(profile.id, friendId);
             setFetch(!fetch);
@@ -109,26 +130,26 @@ const FriendList: React.FC = () => {
     }
 
 	// block a user
-    // async function handleBlockUser(blockedId: string) {
-    //     try {
-    //         await blockUser(profile.id, blockedId);
-    //         setFetch(!prev);
-    //         setFetchBlock(!prev);
-    //     } catch (error) {
-    //         console.error("Failed to block profile:", error);
-    //     }
-    // }
+	async function handleBlockUser(blockedId: string) {
+		setDropdownOpen(-1);
+		try {
+			await blockUser(profile.id, blockedId);
+			setFetch(!fetch);
+		} catch (error) {
+			console.error("Failed to block profile:", error);
+		}
+	}
 
 	// unblock a user
-    // async function handleUnblockUser(blockedId: string) {
-    //     try {
-    //         await unblockUser(profile.id, blockedId);
-    //         setFetch(!prev);
-    //         setFetchBlock(!prev);
-    //     } catch (error) {
-    //         console.error("Failed to unblock profile:", error);
-    //     }
-    // }
+	async function handleUnblockUser(blockedId: string) {
+		setDropdownOpen(-1);
+		try {
+			await unblockUser(profile.id, blockedId);
+			setFetch(!fetch);
+		} catch (error) {
+			console.error("Failed to unblock profile:", error);
+		}
+	}
 
 	return (
 		<div className='w-full h-full overflow-y-auto'>	
@@ -168,15 +189,15 @@ const FriendList: React.FC = () => {
 							<div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
 								<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</div>
 								<div 
-									onClick={() => friendList ? handleDeleteFriend(friend.id) : handleAddFriend(friend.id)}
+									onClick={() => friendList ? handleDeleteFriend(friend.id) : handleAddFriend(friend)}
 									className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
 									>
 										{friendList ? "Delete friend" : "Add friend"}
 								</div>
 								<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
-									// onClick={isUserBlocked(friend.username) ? handleUnblockUser(friend.id) : handleBlockUser(friend.id)}
+									onClick={() => isUserBlocked(friend.id) ? handleUnblockUser(friend.id) : handleBlockUser(friend.id)}
 								>
-									{isUserBlocked(friend.username) ? "Unblock profile" : "Block profile"}
+									{isUserBlocked(friend.id) ? "Unblock profile" : "Block profile"}
 								</div>
 							</div>
 						)}

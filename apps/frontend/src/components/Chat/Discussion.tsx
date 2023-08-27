@@ -14,7 +14,7 @@ import useNotificationContext from '@contexts/NotificationContext/useNotificatio
 const Discussion: React.FC = () => {
     const [messageContent, setMessageContent] = useState<string>('');
     const [] = useState<Message[]>([]);
-    const { setSettings, activeChannel, messages, setMessages } = useStore(state => state.chat);
+    const { setSettings, activeChannel, setActiveChannel, messages, setMessages } = useStore(state => state.chat);
 
     const profile = useUserContext((state) => state.profile);
 	const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -56,11 +56,22 @@ const Discussion: React.FC = () => {
 		if (messageContent.trim() && activeChannel) {
 			try {
 				const res = await isMuted(activeChannel.id, profile.id);
-				if (res.isMuted) {
+				if (res.error == "User is not a member of this chat.") {
+					notifcationCtx.enqueueNotification({
+						message: `You are not member of this channel.`,
+						type: "default"
+					});
+					setActiveChannel(null);
+					setMessages([]);
+					setSettings(false);
+					return ;
+				}
+				else if (res.isMuted) {
 					notifcationCtx.enqueueNotification({
 						message: `You are muted for ${res.remainingMinutes} minutes in this channel`,
 						type: "default"
 					});
+					return ;
 				} else {
 					await sendMessage(activeChannel.id, profile.id, messageContent);
 					setMessageContent('');

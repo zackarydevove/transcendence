@@ -108,6 +108,18 @@ export async function banUser(chatId: string, adminUserId: string, targetUserId:
 	return response.json();
 }
 
+// Unbans a user from a specific chat.
+export async function unbanUser(chatId: string, adminUserId: string, targetUserId: string) {
+	const response = await fetch(`${BASE_URL}/chat/${chatId}/unban/${targetUserId}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ adminUserId }),
+	});
+	return response.json();
+}
+
 // Fetches all chats that a user is a part of.
 export async function getUserChats(userId: string) {
 	const response = await fetch(`${BASE_URL}/chat/${userId}/get-chats`, {
@@ -179,6 +191,19 @@ export async function inviteUserToChat(chatId: string, inviterUserId: string, ta
 	return response.json();
 }
 
+
+// Uninvites a user from a chat.
+export async function uninviteUserFromChat(chatId: string, inviterUserId: string, targetUserId: string) {
+	const response = await fetch(`${BASE_URL}/chat/${chatId}/uninvite/${targetUserId}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ inviterUserId }),
+	});
+	return response.json();
+}
+
 // Mutes a member in a chat for a specific duration.
 export async function muteMember(chatId: string, adminUserId: string, targetUserId: string, muteDuration: number) {
 	const response = await fetch(`${BASE_URL}/chat/${chatId}/mute/${targetUserId}`, {
@@ -205,6 +230,37 @@ export async function unmuteMember(chatId: string, adminUserId: string, targetUs
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({ adminUserId }),
+	});
+	return response.json();
+}
+
+export async function setAdmin(chatId: string, adminUserId: string, targetUserId: string) {
+	const response = await fetch(`${BASE_URL}/chat/${chatId}/setAdmin/${targetUserId}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ adminUserId }),
+	});
+	return response.json();
+}
+
+export async function getBannedUsers(chatId: string) {
+    const response = await fetch(`${BASE_URL}/chat/${chatId}/banned`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+	return response.json();
+}
+
+export async function getInvitedUsers(chatId: string) {
+    const response = await fetch(`${BASE_URL}/chat/${chatId}/invited`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
 	});
 	return response.json();
 }

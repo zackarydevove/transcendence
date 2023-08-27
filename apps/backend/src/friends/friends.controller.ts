@@ -53,8 +53,8 @@ export class FriendsController {
 	}
 
 	// get list of blocked users for a user
-	@Get('blocked-users')
-	async getBlockedUsers(@Body('userId') userId: string) {
+	@Get('blocked-users/:userId')
+	async getBlockedUsers(@Param('userId') userId: string) {
 		return this.friendsService.getBlockedUsers(userId);
 	}
 
@@ -62,5 +62,11 @@ export class FriendsController {
 	@Get('friendship')
 	async getFriendship(@Query('currentUserId') currentUserId: string, @Query('friendUserId') friendUserId: string) {
 		return this.friendsService.getFriendship(currentUserId, friendUserId);
+	}
+
+	// get friendship document from current user and friend usernames
+	@Get(':friendshipId/exist')
+	async getFriendshipExist(@Param('friendshipId') friendshipId: string) {
+		return this.friendsService.getFriendshipFromId(friendshipId);
 	}
 }
