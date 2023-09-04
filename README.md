@@ -1,4 +1,4 @@
-on going, coming soon.
+on going, coming soon
 
 # To start the project
 
