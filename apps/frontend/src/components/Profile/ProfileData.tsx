@@ -1,29 +1,59 @@
 "use client"
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useEffect } from 'react';
 import { BsCameraFill } from 'react-icons/bs';
 import { useStore } from '@/state/store';
+import { useState } from 'react';
+import useUserContext from '@contexts/UserContext/useUserContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import { User } from '@interface/Interface';
+import { getUserByUsername } from '@api/friends';
 
-const ProfileData: React.FC = () => {
-    // mock data
-    let wins: number = 32;
-    let losses: number = 17;
-    let rankPoints: number = 1230;
+interface ProfileDataProps {
+  username: string | string[] | undefined;
+}
 
-    const {
-        username, 
-        setUsername, 
-        isHovered, 
-        setIsHovered 
-    } = useStore(state => state.profile);
+const ProfileData: React.FC<ProfileDataProps> = ({ username }) => {
+    const [changeUsername, setChangeUsername] = useState<string>('');
+    const [user, setUser] = useState<User>();
+
+	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
+    const { isHovered, setIsHovered } = useStore(state => state.profile);
+
+	// Fetch user to have information (nb of wins, losses, etc.)
+	useEffect(() => {
+		const fetchUser = async () => {
+			try {
+				const fetchedUser = await getUserByUsername(username);
+				setUser(fetchedUser);
+			} catch (error) {
+				console.error('Error fetching user:', error);
+			}
+		};
+	
+		fetchUser();
+	}, [username]);
 
 
     const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setUsername(event.target.value);
+		if (profile.id !== user?.id) {
+			notifcationCtx.enqueueNotification({
+				message: `You can modify only your username`,
+				type: "default"
+			});
+			return ;
+		} 
+        setChangeUsername(event.target.value);
     }
     
     const onHover = (x: boolean) => {
         setIsHovered(x);
     }
+
+    // mock data
+    let wins: number = 32;
+    let losses: number = 17;
+    let rankPoints: number = 1230;
 
     return (
         <div className='flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-8'>

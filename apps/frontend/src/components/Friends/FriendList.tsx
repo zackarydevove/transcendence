@@ -1,11 +1,13 @@
 "use client"
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BsThreeDots } from 'react-icons/bs';
 import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { getFriends, addFriend, deleteFriend, blockUser, unblockUser, getBlockedUsers, getFriendship, getUsers } from '@api/friends';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 import { User } from '@interface/Interface';
+import socket from '../../../socket';
 
 const FriendList: React.FC = () => {
 	const [fetch, setFetch] = useState<boolean>(true);
@@ -17,26 +19,23 @@ const FriendList: React.FC = () => {
 			search,
 			friends,
 			setFriends,
-			setActiveFriendship
+			setActiveFriendship,
+			activeFriendship
 	} = useStore(state => state.friends);
 
 	const notifcationCtx = useNotificationContext();
 	const profile = useUserContext((state) => state.profile);
 
 	const toggleDropdown = (event: any, index: number) => {
-		// Stop the click event from propagating to parent elements
 		event.stopPropagation();
 		setDropdownOpen(index === dropdownOpen ? -1 : index);
 	}
-	
+
     const fetchList = async () => {
         try {
-            // Fetch friends or users based on the friendList boolean
             const fetchedData = friendList ? await getFriends(profile.id) : await getUsers();
 
-            // Check if the fetched data is not empty
             if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
-                // Exclude the current user's profile from the list if fetching all users
                 if (!friendList) {
                     const filteredData = fetchedData.filter(userItem => userItem.username !== profile.username);
                     setFriends(filteredData);
@@ -44,7 +43,6 @@ const FriendList: React.FC = () => {
                     setFriends(fetchedData);
                 }
             } else {
-				// Set an empty list if no data is returned
                 setFriends([]);
             }
         } catch (error) {
@@ -55,7 +53,7 @@ const FriendList: React.FC = () => {
 	const fetchBlockedUsers = async () => {
 		try {
 			const result = await getBlockedUsers(profile.id);
-			setBlockedUsers(result);  // Assuming result is an array of usernames that are blocked
+			setBlockedUsers(result);
 		} catch (error) {
 			console.error("Failed to fetch blocked users:", error);
 		}
@@ -77,13 +75,34 @@ const FriendList: React.FC = () => {
 		friend.username.toLowerCase().includes(search.toLowerCase())
 	);
 
+
+
+	// socket
+    useEffect(() => {
+		socket.on('refetch', (userId: string) => {
+			console.log("userId in refetch: ", userId);
+			console.log("profile.id in refetch: ", profile?.id);
+			if (profile?.id === userId) {
+				console.log("refetch!");
+				setFetch(!fetch);
+			}
+		});
+			
+		return () => {
+			socket.off('refetch');
+		};
+    }, []);
+
 	// Get the friendship id to open the chat
 	async function getFriendChat(friend: any) {
 		try {
 			const friendship: any = await getFriendship(profile.id, friend.id);
 			setActiveFriendship(friendship);
 		} catch (error) {
-			console.error("Failed to get friendship id: ", error);
+			notifcationCtx.enqueueNotification({
+				message: `Failed to get friendship chat: ${error}`,
+				type: "default"
+			});
 		}
 	};
 
@@ -110,11 +129,20 @@ const FriendList: React.FC = () => {
 				notifcationCtx.enqueueNotification({
 					message: `${friend.username} is already your friend.`,
 					type: "default"
-			});
+				});
 			}
+			notifcationCtx.enqueueNotification({
+				message: `User added as friend successfully`,
+				type: "default"
+			});
+			console.log("friend id: ", friend.id);
+			socket.emit('refetch', { friendId: friend.id });
 			setFetch(!fetch);
 		} catch (error) {
-			console.error("Failed to add friend: ", error);
+			notifcationCtx.enqueueNotification({
+				message: `Failed to add friend: ${error}`,
+				type: "default"
+			});
 		}
 	}
 
@@ -123,9 +151,17 @@ const FriendList: React.FC = () => {
 		setDropdownOpen(-1);
         try {
             const updatedUser = await deleteFriend(profile.id, friendId);
+			notifcationCtx.enqueueNotification({
+				message: `User is no longer your friend`,
+				type: "default"
+			});
+			socket.emit('refetch', friendId);
             setFetch(!fetch);
         } catch (error) {
-            console.error("Failed to delete friend: ", error);
+			notifcationCtx.enqueueNotification({
+				message: `Failed to delete friend: ${error}`,
+				type: "default"
+			});
         }
     }
 
@@ -134,9 +170,17 @@ const FriendList: React.FC = () => {
 		setDropdownOpen(-1);
 		try {
 			await blockUser(profile.id, blockedId);
+			notifcationCtx.enqueueNotification({
+				message: `User has been blocked`,
+				type: "default"
+			});
+			socket.emit('refetch', blockedId);
 			setFetch(!fetch);
 		} catch (error) {
-			console.error("Failed to block profile:", error);
+			notifcationCtx.enqueueNotification({
+				message: `Failed to block profile: ${error}`,
+				type: "default"
+			});
 		}
 	}
 
@@ -145,9 +189,17 @@ const FriendList: React.FC = () => {
 		setDropdownOpen(-1);
 		try {
 			await unblockUser(profile.id, blockedId);
+			notifcationCtx.enqueueNotification({
+				message: `User has been unblocked`,
+				type: "default"
+			});
+			socket.emit('refetch', blockedId);
 			setFetch(!fetch);
 		} catch (error) {
-			console.error("Failed to unblock profile:", error);
+			notifcationCtx.enqueueNotification({
+				message: `Failed to unblock profile: ${error}`,
+				type: "default"
+			});
 		}
 	}
 
@@ -166,7 +218,9 @@ const FriendList: React.FC = () => {
 
 					{/* Profile Picture and Username */}
 					<div className='flex items-center'>
-						<div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4' />
+						<Link href={`/profile/${friend.username}`}>
+							<div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4' />
+						</Link>
 						<p className='text-gray-700'>{friend.username}</p>
 					</div>
 

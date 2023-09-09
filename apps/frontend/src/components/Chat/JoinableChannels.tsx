@@ -9,7 +9,7 @@ import useUserContext from '@contexts/UserContext/useUserContext';
 
 const JoinableChannels: React.FC = () => {
     const { search, setSearch, setShowJoinModal, setClickedGroup } = useStore(state => state.chat);
-    const [groups, setGroups] = useState<Chat[]>([]); // Define a state for storing the fetched chats
+    const [groups, setGroups] = useState<Chat[]>([]);
 
 	const profile = useUserContext((state) => state.profile);
 
@@ -20,7 +20,7 @@ const JoinableChannels: React.FC = () => {
         }
 
         fetchChats();
-    }, []); // An empty dependency array ensures that this useEffect runs only once, similar to componentDidMount
+    }, []);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);

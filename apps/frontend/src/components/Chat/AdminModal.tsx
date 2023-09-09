@@ -2,16 +2,33 @@ import React from 'react';
 import { useStore } from '@/state/store';
 import { setAdmin } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const AdminModal: React.FC = () => {
 
     const { setShowAdminModal, activeChannel, targetMember } = useStore(state => state.chat);
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
 	const handleSetAdmin = async () => {
 		if (activeChannel && targetMember) {
 			const res = await setAdmin(activeChannel.id, profile.id, targetMember.user.id);
-			console.log(res);
+			if (res.status == "Only admin or creator can set admins.") {
+				notifcationCtx.enqueueNotification({
+					message: `Only admin or creator can set admins.`,
+					type: "default"
+				});
+			} else if (res.status == "Member is already an admin or creator, or not found.") {
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} is already an admin or creator, or has left.`,
+					type: "default"
+				});
+			} else {
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} is now admin in ${activeChannel.name}.`,
+					type: "default"
+				});
+			}
 			setShowAdminModal(false);
 		}
 	}

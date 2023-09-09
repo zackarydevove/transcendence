@@ -17,6 +17,11 @@ export class FriendsController {
 		return this.friendsService.addFriend(userId, friendId);
 	}
 
+	@Get('user/:username')
+	async getUser(@Param('username') username: string) {
+		return this.friendsService.getUser(username);
+	}
+
 	@Get('users')
 	async getUsers() {
     	return this.friendsService.getUsers();

@@ -2,40 +2,34 @@ import React, { useState } from 'react';
 import { useStore } from '@/state/store';
 import { addMember } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
-// import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const JoinModal: React.FC = () => {
     const [password, setPassword] = useState<string>('');
     const { setShowJoinModal, clickedGroup } = useStore(state => state.chat);
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
 	const handleAddMember = async () => {
-
-		// const notifcationCtx = useNotificationContext();
-
 		if (clickedGroup) {
-
 			if (clickedGroup.type === 'protected') {
 				if (password !== clickedGroup.password) {
-					console.log("Wrong password.");
-					// notifcationCtx.enqueueNotification({
-					// 	message: `Wrong password.`,
-					// 	type: "default"
-					// });
+					notifcationCtx.enqueueNotification({
+						message: `Wrong password.`,
+						type: "default"
+					});
 					setShowJoinModal(false);
 					return;
 				}
 			}
 	
 			if (clickedGroup.type === 'private') {
-				console.log("clickedGroup.invited: ", clickedGroup);
 				const isUserInvited = clickedGroup.invited?.some(invite => invite.userId === profile.id);
 				if (!isUserInvited) {
-					console.log("You are not invited to this channel.");
-					// notifcationCtx.enqueueNotification({
-					// 	message: `You are not invited to this channel.`,
-					// 	type: "default"
-					// });
+					notifcationCtx.enqueueNotification({
+						message: `You are not invited to this channel.`,
+						type: "default"
+					});
 					setShowJoinModal(false);
 					return;
 				}
@@ -43,25 +37,23 @@ const JoinModal: React.FC = () => {
 
 			const res = await addMember(clickedGroup.id, profile.id);
 			if (res.error == 'This user is banned from the chat.') {
-				console.log(`You are banned from ${clickedGroup.name} channel.`);
-				// notifcationCtx.enqueueNotification({
-				// 	message: `You are banned from ${clickedGroup.name} channel.`,
-				// 	type: "default"
-				// });
+				notifcationCtx.enqueueNotification({
+					message: `You are banned from ${clickedGroup.name} channel.`,
+					type: "default"
+				});
 				return ;
 			}
 			if (res.alreadyMember) {
-				console.log(`You are already a member of ${clickedGroup.name}.`);
-				// notifcationCtx.enqueueNotification({
-				// 	message: `You are already a member of ${clickedGroup.name}.`,
-				// 	type: "default"
-				// });
+				notifcationCtx.enqueueNotification({
+					message: `You are already a member of ${clickedGroup.name}.`,
+					type: "default"
+				});
 				return ;
 			}
-			// notifcationCtx.enqueueNotification({
-			// 	message: `You have joined ${clickedGroup.name} successfully!`,
-			// 	type: "default"
-			// });
+			notifcationCtx.enqueueNotification({
+				message: `You have joined ${clickedGroup.name} successfully!`,
+				type: "default"
+			});
 			setShowJoinModal(false);
 		}
 	}

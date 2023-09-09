@@ -1,9 +1,11 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AiOutlineClose } from 'react-icons/ai';
 import { useStore } from '@/state/store';
 import { getChatMembers, updateChatName, updateChatPassword } from '@api/chat';
 import { Member } from '@interface/Interface';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import useUserContext from '@contexts/UserContext/useUserContext';
 
 const Settings: React.FC = () => {
     const { 
@@ -14,6 +16,9 @@ const Settings: React.FC = () => {
 		activeChannel, setTargetMember, chatMembers, setChatMembers,
 		setActiveChannel, setShowAdminModal
     } = useStore(state => state.chat);
+
+	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 	
 	useEffect(() => {
         const fetchChatMembers = async () => {
@@ -23,7 +28,10 @@ const Settings: React.FC = () => {
 					setChatMembers(members);
 				}
             } catch (error) {
-                console.error("Failed to fetch chat members:", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured.`,
+					type: "default"
+				});
             }
         };
 
@@ -43,34 +51,45 @@ const Settings: React.FC = () => {
 		setTargetMember(target);
 	}
 
-	const notifcationCtx = useNotificationContext();
-
 	const handleUpdate = async (type: 'name' | 'password') => {
 		try {
 			if (activeChannel) {
 				if (type === 'name') {
-					const res = await updateChatName(activeChannel.id, channelName);
-					if (res.name) {
+					const res = await updateChatName(activeChannel.id, channelName, profile.id);
+					if (res.error) {
+						notifcationCtx.enqueueNotification({
+							message: res.error,
+							type: "default"
+						});
+					} else {
 						notifcationCtx.enqueueNotification({
 							message: `Channel name has successfully been changed to ${res.name}.`,
 							type: "default"
 						});
-						setChannelName("");
-						setActiveChannel(res);
 					}
+					setChannelName("");
+					setActiveChannel(res);
 				} else if (type === 'password') {
-					const res = await updateChatPassword(activeChannel.id, channelPassword);
-					if (res.name) {
+					const res = await updateChatPassword(activeChannel.id, channelPassword, profile.id);
+					if (res.error) {
+						notifcationCtx.enqueueNotification({
+							message: res.error,
+							type: "default"
+						});
+					} else {
 						notifcationCtx.enqueueNotification({
 							message: `Channel password has successfully been changed.`,
 							type: "default"
 						});
-						setChannelPassword("");
 					}
+					setChannelPassword("");
 				}
 			}
 		} catch (error) {
-			console.error(`Error updating channel ${type}:`, error);
+			notifcationCtx.enqueueNotification({
+				message: `An error has occured updating channel.`,
+				type: "default"
+			});
 		}
 	};
 
@@ -119,7 +138,9 @@ const Settings: React.FC = () => {
                 <div className='flex flex-col'>
                     {chatMembers?.map((member, index) => (
                     <div key={index} className='flex items-center justify-between gap-4 pr-5 py-1'>
-                        <div className='h-10 w-10 bg-pp bg-contain rounded-full hover:cursor-pointer'/>
+						<Link href={`/profile/${member.user.username}`}>
+                        	<div className='h-10 w-10 bg-pp bg-contain rounded-full hover:cursor-pointer'/>
+						</Link>
                         <p className='text-gray-700 flex-grow'>{member.user.username}</p>
                         <p className='text-gray-500 flex-grow text-sm'>{member.role}</p>
                         <div className='flex gap-2'>

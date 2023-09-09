@@ -61,18 +61,20 @@ export class ChatController {
 	@Patch(':chatId/name')
 	async updateChatName(
 		@Param('chatId') chatId: string,
-		@Body('newChatName') newChatName: string
+		@Body('newChatName') newChatName: string,
+		@Body('userId') userId: string
 	) {
-		return this.chatService.updateChatName(chatId, newChatName);
+		return this.chatService.updateChatName(chatId, newChatName, userId);
 	}
 
 	// update password of chat
 	@Patch(':chatId/password')
 	async updateChatPassword(
 		@Param('chatId') chatId: string,
-		@Body('newPassword') newPassword: string
+		@Body('newPassword') newPassword: string,
+		@Body('userId') userId: string 
 	) {
-		return this.chatService.updateChatPassword(chatId, newPassword);
+		return this.chatService.updateChatPassword(chatId, newPassword, userId);
 	}
 
 	// ban a user in chat
@@ -208,5 +210,14 @@ export class ChatController {
 		@Param('chatId') chatId: string,
 	) {
 		return this.chatService.getInvitedUsers(chatId);
+	}
+
+	// check if a member is muted
+	@Get(':chatId/isAdmin/:userId')
+	async isAdmin(
+		@Param('chatId') chatId: string,
+		@Param('userId') userId: string,
+	) {
+		return this.chatService.isAdmin(chatId, userId);
 	}
 }

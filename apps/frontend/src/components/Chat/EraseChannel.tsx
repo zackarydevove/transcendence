@@ -14,21 +14,28 @@ const EraseChannel: React.FC = () => {
     const handleEraseChannel = async () => {
         if (activeChannel && activeChannel.id) {
             try {
-                const response = await deleteChat(activeChannel.id, profile.id);
-				if (response.ok) {
+                const res = await deleteChat(activeChannel.id, profile.id);
+				if (res.error) {
+					notifcationCtx.enqueueNotification({
+						message: res.error,
+						type: "default"
+					})
+				} else {
+					notifcationCtx.enqueueNotification({
+						message: `Channel ${activeChannel.name} has been deleted.`,
+						type: "default"
+					});
 					setActiveChannel(null);
 					setSettings(false);
 					const updatedGroups = myGroups.filter(group => group.id !== activeChannel.id);
 					setMyGroups(updatedGroups);
-				} else {
-					notifcationCtx.enqueueNotification({
-					message: "You can't delete this channel",
-					type: "default"
-					})
 				}
 				setShowEraseModal(false);
             } catch (error) {
-                console.error("Error calling the API:", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured.`,
+					type: "default"
+				});
             }
         }
     }

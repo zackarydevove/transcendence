@@ -2,12 +2,14 @@ import React, { ChangeEvent, useState } from 'react';
 import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { muteMember } from '@api/chat';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const MuteModal: React.FC = () => {
     const [minutes, setMinutes] = useState(1);
     const { setShowMuteModal, activeChannel, targetMember, setTargetMember } = useStore(state => state.chat);
 
     const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setMinutes(Number(e.target.value));
@@ -15,12 +17,46 @@ const MuteModal: React.FC = () => {
 
     const handleMute = async (duration: number) => {
         if (activeChannel && activeChannel.id && targetMember && targetMember.id && profile) {
+			if (profile.id == targetMember.user.id) {
+				notifcationCtx.enqueueNotification({
+					message: `You can't mute yourself.`,
+					type: "default"
+				});
+				setShowMuteModal(false);
+				setTargetMember(null);
+				return ;
+			}
+			if (targetMember.role == 'creator') {
+				notifcationCtx.enqueueNotification({
+					message: `You can't mute the creator.`,
+					type: "default"
+				});
+				setShowMuteModal(false);
+				setTargetMember(null);
+				return ;
+			}
             try {
                 const res = await muteMember(activeChannel.id, profile.id, targetMember.user.id, duration);
+				if (res.error == "Only admin or creator can mute users.") {
+					notifcationCtx.enqueueNotification({
+						message: `Only admin or creator can mute users.`,
+						type: "default"
+					});
+					setShowMuteModal(false);
+					setTargetMember(null);
+					return ;
+				}
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} has been muted ${duration} minutes.`,
+					type: "default"
+				});
                 setShowMuteModal(false);
 				setTargetMember(null);
             } catch (error) {
-                console.error("Error muting the member:", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured trying to mute the member.`,
+					type: "default"
+				});
             }
         }
     }

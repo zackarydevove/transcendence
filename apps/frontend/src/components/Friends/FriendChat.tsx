@@ -59,7 +59,6 @@ const FriendChat: React.FC = () => {
 		if (messageContent.trim() && activeFriendship) {
 			try {
 				const res = await checkIfFriendshipExists(activeFriendship.id);
-				console.log("res: ", res);
 				if (!res.exist) {
 					notifcationCtx.enqueueNotification({
 						message: `You can't send message as you are not friends anymore`,
@@ -70,7 +69,10 @@ const FriendChat: React.FC = () => {
 				await sendFriendMessage(activeFriendship.id, profile.id, messageContent);
 				setMessageContent('');
 			} catch (error) {
-				console.error("Error sending message:", error);
+				notifcationCtx.enqueueNotification({
+					message: `Error sending message:`,
+					type: "default"
+				});
 			}
 		}
 	};
@@ -81,7 +83,7 @@ const FriendChat: React.FC = () => {
 			<div className='flex flex-col h-full w-full overflow-y-auto mb-4'>
                 {messages.map((msg: FriendMessage, index) => {
                     if (msg.sender.username === profile.username) {
-						return <MessageSender key={index} time={messageDate(msg.createdAt)} message={msg.content} />;
+						return <MessageSender key={index} time={messageDate(msg.createdAt)} message={msg.content} username={msg.sender.username}/>;
                     } else {
                         return <MessageReceiver key={index} username={msg.sender.username} time={messageDate(msg.createdAt)} message={msg.content} />;
                     }

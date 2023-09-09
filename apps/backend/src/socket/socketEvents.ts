@@ -11,6 +11,7 @@ import DatabaseService from "src/database/database.service";
     }
 })
 export class SocketEvents {
+    private clientUserMapping = new Map<string, string>();
 
     @WebSocketServer()
     server: Server;
@@ -20,15 +21,35 @@ export class SocketEvents {
 		private friendsService: FriendsService
 	) {}
 
-	// connect (each client has their own id)
-    handleConnection(client: Socket){
+	// connect
+    async handleConnection(client: Socket){
         console.log(`client connected: ${client.id}`);
     }
 
 	// disconnect
-    handleDisconnect(client: Socket){
+    async handleDisconnect(client: Socket){
         console.log(`client disconnected: ${client.id}`);
+
+        const userId = this.clientUserMapping.get(client.id);
+        if (userId) {
+            const user = await this.friendsService.updateUserStatus(userId, 'offline');
+            if (user)
+                console.log(`Status of ${userId} has been updated to offline`);
+                
+            this.clientUserMapping.delete(client.id);
+        }
     }
+
+	// update status
+    @SubscribeMessage('setOnline')
+	async handleStatus(client: Socket, payload: { userId: string }) {
+		const user = await this.friendsService.updateUserStatus(payload.userId, 'online');
+		if (user)
+			console.log(`Status of ${payload.userId} has been updated to online`);
+		
+        this.clientUserMapping.set(client.id, payload.userId);
+	}
+
 
 	// join chat
     @SubscribeMessage('joinChat')
@@ -70,6 +91,13 @@ export class SocketEvents {
         }
     }
 
+	// force refetch
+    @SubscribeMessage('refetch')
+    async refetch(client: Socket, payload: { friendId: string}) {
+		console.log(`Client with ID ${payload.friendId} has been refetched `);
+		this.server.emit('refetch', { userId: payload.friendId });
+        return { event: 'refetch', data: `Client with ID ${payload.friendId} has been refetched` };
+    }
 
 	// join chat
     @SubscribeMessage('joinFriendship')

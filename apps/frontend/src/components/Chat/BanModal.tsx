@@ -1,20 +1,60 @@
 import React from 'react';
 import { useStore } from '@/state/store';
 import { banUser } from '@api/chat';
-import useUserContext
- from '@contexts/UserContext/useUserContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import useUserContext from '@contexts/UserContext/useUserContext';
+
 const BanModal: React.FC = () => {
 	const { setShowBanModal, activeChannel, targetMember, setTargetMember, chatMembers, setChatMembers } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
-
+	const notifcationCtx = useNotificationContext();
 
     const handleBan = async () => {
         if (activeChannel && activeChannel.id && targetMember) {
+			if (profile.id == targetMember.user.id) {
+				notifcationCtx.enqueueNotification({
+					message: `You can't ban yourself.`,
+					type: "default"
+				});
+				setShowBanModal(false);
+				setTargetMember(null);
+				return ;
+			}
+			if (targetMember.role == 'creator') {
+				notifcationCtx.enqueueNotification({
+					message: `You can't mute the creator.`,
+					type: "default"
+				});
+				setShowBanModal(false);
+				setTargetMember(null);
+				return ;
+			}
 			const res = await banUser(activeChannel.id, profile.id, targetMember.user.id)
-			if (res.ok && chatMembers) {
-				const updatedMembers = chatMembers.filter(member => member.id !== targetMember.id);
-				setChatMembers(updatedMembers);
+			if (res.error == "User is not a member of the chat") {
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} is not a member of ${activeChannel.name}.`,
+					type: "default"
+				});
+			} else if (res.error == "Only admin or creator can ban users.") {
+				notifcationCtx.enqueueNotification({
+					message: `Only admin or creator can ban users.`,
+					type: "default"
+				});
+			} else if (res.error == "Chat not found") {
+				notifcationCtx.enqueueNotification({
+					message: `${activeChannel.name} not found.`,
+					type: "default"
+				});
+			} else {
+				if (chatMembers) {
+					const updatedMembers = chatMembers.filter(member => member.id !== targetMember.id);
+					setChatMembers(updatedMembers);
+				}
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} has been banned from ${activeChannel.name}.`,
+					type: "default"
+				});
 			}
 			setShowBanModal(false);
 			setTargetMember(null);

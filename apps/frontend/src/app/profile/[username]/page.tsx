@@ -4,11 +4,11 @@ import Historic from '@components/Profile/Historic';
 import ProfileData from '@components/Profile/ProfileData';
 import TWOFAAuth from '@components/Profile/TWOFAAuth';
 
-interface CacaProps {
+interface UserProfileProps {
 	params: {username: string}
 }
 
-const Caca: React.FC<CacaProps> = ({ params }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ params }) => {
 
   return (
     <div className='relative flex items-center justify-center h-screen w-screen bg-gray-900 overflow-y-auto'>
@@ -29,4 +29,4 @@ const Caca: React.FC<CacaProps> = ({ params }) => {
   )
 };
 
-export default Caca;
+export default UserProfile;

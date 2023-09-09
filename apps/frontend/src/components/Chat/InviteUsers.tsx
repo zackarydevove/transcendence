@@ -26,7 +26,10 @@ const InviteUsers: React.FC = () => {
 				if (Array.isArray(result.banned)) {
 					setBanned(result.banned);
 				} else {
-					console.error('Expected banned users to be an array, got:', result);
+					notifcationCtx.enqueueNotification({
+						message: `An error has occured.`,
+						type: "default"
+					});
 				}
 			}
 		}
@@ -37,7 +40,10 @@ const InviteUsers: React.FC = () => {
 				if (Array.isArray(result)) {
 					setInvited(result);
 				} else {
-					console.error('Expected invited users to be an array, got:', result);
+					notifcationCtx.enqueueNotification({
+						message: `An error has occured.`,
+						type: "default"
+					});
 					setInvited([]);
 				}
 			}
@@ -53,7 +59,10 @@ const InviteUsers: React.FC = () => {
                     setUsers([]);
                 }
             } catch (error) {
-                console.error('Error fetching list:', error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured.`,
+					type: "default"
+				});
             }
         }
 
@@ -78,30 +87,69 @@ const InviteUsers: React.FC = () => {
 				return ;
 			}
 			if (activeChannel?.id && target) {
-				const res = invited.some(inv => inv.userId == target.id) 
+				const bool = invited.some(inv => inv.userId == target.id) ? true : false;
+				const res = bool
 					? await uninviteUserFromChat(activeChannel.id, profile.id, target.id)
 					: await inviteUserToChat(activeChannel.id, profile.id, target.id);
 				if (res.ok) {
+					if (bool) {
+						notifcationCtx.enqueueNotification({
+							message: `${target.username} has been uninvitedd.`,
+							type: "default"
+						});
+					} else {
+						notifcationCtx.enqueueNotification({
+							message: `${target.username} has been invited.`,
+							type: "default"
+						});
+					}
 					setFetch(!fetch);
 				}
 			}
-		} else if (action === "ban") { // chatId: string, adminUserId: string, targetUserId: string
+		} else if (action === "ban") {
 			if (activeChannel && activeChannel.id && target) {
-				const res = banned.some(ban => ban == target.id)
+				const bool = banned.some(ban => ban == target.id) ? true : false;
+				const res = bool
 					? await unbanUser(activeChannel.id, profile.id, target.id)
 					: await banUser(activeChannel.id, profile.id, target.id)
-				console.log("Res ban: ", res);
-				if (res.ok) {
-					console.log("refetch?");
+				if (res.error == "User is not a member of the chat") {
+					notifcationCtx.enqueueNotification({
+						message: `${target.username} is not a member of ${activeChannel.name}.`,
+						type: "default"
+					});
+				} else if (res.error == "Only admin or creator can ban users.") {
+					notifcationCtx.enqueueNotification({
+						message: `Only admin or creator can ban or unban users.`,
+						type: "default"
+					});
+				} else if (res.error == "Chat not found") {
+					notifcationCtx.enqueueNotification({
+						message: `${activeChannel.name} not found.`,
+						type: "default"
+					});
+				} else if (res.error == "User is not banned.") {
+					notifcationCtx.enqueueNotification({
+						message: `${target.username} can't be unbanned because he is not banned.`,
+						type: "default"
+					});
+				} else {
+					if (bool) {
+						notifcationCtx.enqueueNotification({
+							message: `${target.username} has been unbanned.`,
+							type: "default"
+						});
+					} else {
+						notifcationCtx.enqueueNotification({
+							message: `${target.username} has been banned.`,
+							type: "default"
+						});
+					}
 					setFetch(!fetch);
 				}
 			}
 		}
     }
 
-
-	console.log("banned: ", banned);
-	console.log("invited: ", invited);
 
     return (
 

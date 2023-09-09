@@ -73,27 +73,27 @@ export async function sendMessage(chatId: string, senderId: string, content: str
 }
 
 // Updates the name of a chat.
-export async function updateChatName(chatId: string, newChatName: string) {
-	const response = await fetch(`${BASE_URL}/chat/${chatId}/name`, {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ newChatName }),
-	});
-	return response.json();
+export async function updateChatName(chatId: string, newChatName: string, userId: string) {
+    const response = await fetch(`${BASE_URL}/chat/${chatId}/name`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newChatName, userId }),
+    });
+    return response.json();
 }
 
 // Updates the password of a chat.
-export async function updateChatPassword(chatId: string, newPassword: string) {
-	const response = await fetch(`${BASE_URL}/chat/${chatId}/password`, {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ newPassword }),
-	});
-	return response.json();
+export async function updateChatPassword(chatId: string, newPassword: string, userId: string) {
+    const response = await fetch(`${BASE_URL}/chat/${chatId}/password`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newPassword, userId }),
+    });
+    return response.json();
 }
 
 // Bans a user from a specific chat.
@@ -257,6 +257,18 @@ export async function getBannedUsers(chatId: string) {
 
 export async function getInvitedUsers(chatId: string) {
     const response = await fetch(`${BASE_URL}/chat/${chatId}/invited`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+	return response.json();
+}
+
+
+
+export async function isAdmin(chatId: string, userId: string) {
+    const response = await fetch(`${BASE_URL}/chat/${chatId}/isAdmin/${userId}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',

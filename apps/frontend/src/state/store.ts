@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { User, FriendMessage, Friendship, ChatType, Chat, Member, Message } from '@interface/Interface';
 
 type Store = {
-  app: {},
   chat: {
     search: string,
     setSearch: (value: string) => void,
@@ -65,20 +64,13 @@ type Store = {
 	messages: FriendMessage[]
 	setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => void;
   },
-  leaderboard: {},
-  login: {},
-  play: {},
   profile: {
-    username: string,
-    setUsername: (username: string) => void,
     isHovered: boolean,
     setIsHovered: (isHovered: boolean) => void,
   },
-  signup: {},
 };
 
 export const useStore = create<Store>((set) => ({
-  app: {},
   chat: {
     search: "",
     setSearch: (search: string) => set((state) => ({ chat: { ...state.chat, search } })),
@@ -153,14 +145,8 @@ export const useStore = create<Store>((set) => ({
 		}
 	},
   },
-  leaderboard: {},
-  login: {},
-  play: {},
   profile: {
-    username: 'Pop',
-    setUsername: (username: string) => set((state) => ({ profile: { ...state.profile, username } })),
     isHovered: false,
     setIsHovered: (isHovered: boolean) => set((state) => ({ profile: { ...state.profile, isHovered } })),
   },
-  signup: {},
 }));

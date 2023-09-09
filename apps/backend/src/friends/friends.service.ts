@@ -79,6 +79,15 @@ export default class FriendsService {
 		});
 	}
 	
+	async getUser(username: string) {
+		const user = await this.databaseService.user.findUnique({
+			where: {
+				username: username
+			}
+		});
+	
+		return user;
+	}
 
 	async getUsers() {
         return this.databaseService.user.findMany();
@@ -98,7 +107,7 @@ export default class FriendsService {
 		});
 
 		if (!friendship) {
-			throw new Error("Friendship not found");
+			return { error: "Friendship not found"};
 		}
 
 		await this.databaseService.friendMessage.deleteMany({
@@ -137,7 +146,7 @@ export default class FriendsService {
 			where: { id: userId },
 			data: {
 				blockedFriends: {
-				set: updatedBlockedUsers
+					set: updatedBlockedUsers
 				}
 			}
 		});
@@ -161,7 +170,7 @@ export default class FriendsService {
 		});
 
 		if (!exist) {
-			throw new Error('Friendship not found');
+			return { ok: false };
 		}
 	
 		return this.databaseService.friendMessage.create({
@@ -215,5 +224,15 @@ export default class FriendsService {
 		});
 	
 		return friendship ? { exist: true } : { exist: false };
+	}
+
+	async updateUserStatus(userId: string, status: 'online' | 'offline' | 'ingame') {
+		const user = await this.databaseService.user.update({
+				where: { id: userId },
+				data: { status },
+			});
+		if (!user)
+			return { error: 'Error updating user status:', ok: false};
+		return { user, ok: true };
 	}
 }

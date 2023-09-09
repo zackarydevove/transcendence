@@ -8,16 +8,21 @@ import socket from '../../../socket';
 import { getChatMessages, sendMessage, isMuted } from '@api/chat';
 import MessageReceiver from './MessageReceiver';
 import MessageSender from './MessageSender';
+import MessageBlur from './MessageBlur';
 import { messageDate } from '@utils/formatDate';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import { getBlockedUsers } from '@api/friends';
+
 
 const Discussion: React.FC = () => {
+    const [blocked, setBlocked] = useState<string[]>([]);
     const [messageContent, setMessageContent] = useState<string>('');
     const [] = useState<Message[]>([]);
     const { setSettings, activeChannel, setActiveChannel, messages, setMessages } = useStore(state => state.chat);
 
     const profile = useUserContext((state) => state.profile);
 	const scrollRef = useRef<HTMLDivElement | null>(null);
+	const notifcationCtx = useNotificationContext();
 
     useEffect(() => {
         if (activeChannel && activeChannel.id) {
@@ -35,9 +40,8 @@ const Discussion: React.FC = () => {
     }, [activeChannel]);
 
 	// Scroll to the bottom
-	useEffect(() => {
+	useEffect(() => {	
 		scrollRef.current?.scrollIntoView();
-		console.log("messages: ", messages);
 	}, [messages]);
 
 	// get messages from database on mount
@@ -47,10 +51,13 @@ const Discussion: React.FC = () => {
 			.then(fetchedMessages => {
 				setMessages(fetchedMessages);
 		  	});
+			getBlockedUsers(profile.id)
+			.then(blockedUsers => {
+				setBlocked(blockedUsers);
+			})
 		}
 	}, [activeChannel]);
 
-	const notifcationCtx = useNotificationContext();
 
 	const handleSendMessage = async () => {
 		if (messageContent.trim() && activeChannel) {
@@ -77,12 +84,13 @@ const Discussion: React.FC = () => {
 					setMessageContent('');
 				}
 			} catch (error) {
-				console.error("Error sending message:", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured.`,
+					type: "default"
+				});
 			}
 		}
 	};
-
-	console.log("activeChannel Discussion: ", activeChannel);
 
     return (
         <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full max-md:hidden md:w-[400px] lg:w-[570px] xl:w-[760px]'>
@@ -95,8 +103,11 @@ const Discussion: React.FC = () => {
             {/* Chat messages */}
             <div className='flex flex-col h-full w-full overflow-y-auto mb-4'>
 				{messages?.map((msg: Message, index) => {
+						if (blocked.includes(msg.sender.id)) {
+							return <MessageBlur key={index} username={msg.sender.username} time={messageDate(msg.createdAt)} message={msg.content}/>
+						}
 						if (msg.sender.username === profile.username) {
-							return <MessageSender key={index} time={messageDate(msg.createdAt)} message={msg.content} />;
+							return <MessageSender key={index} time={messageDate(msg.createdAt)} message={msg.content} username={msg.sender.username} />;
 						} else {
 							return <MessageReceiver key={index} username={msg.sender.username} time={messageDate(msg.createdAt)} message={msg.content} />;
 						}

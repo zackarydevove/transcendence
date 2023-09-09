@@ -26,6 +26,17 @@ export async function addFriend (userId: string, friendId: string) {
 	return response.json();
 };
 
+export async function getUserByUsername(username: string | string[] | undefined) {
+    const response = await fetch(`${BASE_URL}/friends/user/${username}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+	return response.json();
+}
+
 // Return all users
 export async function getUsers() {
     const response = await fetch(`${BASE_URL}/friends/users`, {

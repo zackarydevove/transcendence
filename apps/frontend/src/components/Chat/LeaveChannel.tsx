@@ -2,18 +2,24 @@ import React from 'react';
 import { useStore } from '@/state/store';
 import { deleteMember } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const LeaveChannel: React.FC = () => {
 
     const { setShowLeaveModal, activeChannel, setActiveChannel, setMyGroups, myGroups, setSettings } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
     const handleLeaveChannel = async () => {
         if (activeChannel && activeChannel.id) {
             try {
                 const response = await deleteMember(activeChannel.id, profile.id);
 				if (response.id || response.message === "Chat successfully deleted") {
+					notifcationCtx.enqueueNotification({
+						message: `You have left ${activeChannel.name} successfully.`,
+						type: "default"
+					});
 					setActiveChannel(null);
 					setSettings(false);
 					const updatedGroups = myGroups.filter(group => group.id !== activeChannel.id);
@@ -21,7 +27,10 @@ const LeaveChannel: React.FC = () => {
 				}
 				setShowLeaveModal(false);
             } catch (error) {
-                console.error("Error calling the API:", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured`,
+					type: "default"
+				});
             }
         }
     }

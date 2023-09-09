@@ -173,12 +173,12 @@ export default class ChatService {
 					}
 				},
 				orderBy: {
-					id: 'asc'  // Assuming that the ID is chronological. If there's a 'joinedAt' field or similar, use that.
+					id: 'asc'
 				}
 			});
 		
 			if (!oldestMember) {
-				return { error : 'No other members found in the chat' }; // This should not occur due to the memberCount check, but it's a safety measur };
+				return { error : 'No other members found in the chat' };
 			}
 		
 			// Update the oldest member's role to creator
@@ -306,32 +306,46 @@ export default class ChatService {
 	}
 
 	// change name of channel
-	async updateChatName(chatId: string, newChatName: string) {
+	async updateChatName(chatId: string, newChatName: string, userId: string) {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
-		
-		if (!chat) return { error : 'Chat not found' };
-		
+
+		if (!chat) return { error: 'Chat not found' };
+
+		const checkAdmin = await this.isAdmin(chatId, userId);
+
+		// Check if user is the creator or an admin
+		if (!checkAdmin.ok) return { error: 'You are is not authorized to change the chat name' };
+
 		const updatedChat = await this.databaseService.chat.update({
 			where: { id: chatId },
 			data: { name: newChatName }
 		});
-		
+
 		return updatedChat;
 	}
 
 	// change password of channel
-	async updateChatPassword(chatId: string, newPassword: string) {
+	async updateChatPassword(chatId: string, newPassword: string, userId: string) {
 		const chat = await this.databaseService.chat.findUnique({ where: { id: chatId } });
-	
-		if (!chat) return { error : 'Chat not found' };
-	
+
+		if (!chat) return { error: 'Chat not found' };
+
+		const checkAdmin = await this.isAdmin(chatId, userId);
+
+		// Check if user is the creator or an admin
+		if (!checkAdmin.ok) return { error: 'You are not authorized to change the chat password' };
+
+		// Check if the chat is of type 'protected'
+		if (chat.type !== 'protected') return { error: 'Chat is not protected and cannot have a password' };
+
 		const updatedChat = await this.databaseService.chat.update({
 			where: { id: chatId },
 			data: { password: newPassword }
 		});
-	
+
 		return updatedChat;
 	}
+
 
 	// ban user from chat
 	async banUserFromChat(chatId: string, adminUserId: string, targetUserId: string) {
@@ -403,7 +417,7 @@ export default class ChatService {
 		});
 	
 		if (!admin || (admin.role !== 'admin' && admin.role !== 'creator')) {
-			return { error: 'Only admin or creator can unban users.' };
+			return { error: 'Only admin or creator can ban users.' };
 		}
 	
 		const chatToUpdate = await this.databaseService.chat.findUnique({
@@ -452,7 +466,26 @@ export default class ChatService {
 		if (!checkAdmin || (checkAdmin.role !== 'admin' && checkAdmin.role !== 'creator')) {
 			return { error : 'Only admin or creator can kick users.' };
 		}
-  
+	
+
+		const checkTarget = await this.databaseService.member.findFirst({
+			where: {
+				userId: targetUserId,
+				chatId: chatId
+			},
+			select: {
+				role: true
+			}
+		});
+
+		if (!checkTarget) {
+			return { error : 'Target is not in this channel.'};
+		}
+
+		if (checkAdmin.role == 'admin' && (checkTarget.role == 'admin' || checkTarget.role == 'creator')) {
+			return { error : 'Admin cannot kick other admin or creator.' };
+		}
+
 		return this.deleteMember(chatId, targetUserId);
 	}
 
@@ -653,7 +686,7 @@ export default class ChatService {
 		});
 
 		if (!memberRole || (memberRole.role !== 'admin' && memberRole.role !== 'creator')) {
-			return { status: 'Only admin or creator can unmute users.' };
+			return { status: 'Only admin or creator can set admins.' };
 		}
 	
 		// Check if the target user is actually muted
@@ -689,7 +722,7 @@ export default class ChatService {
 				banned: true,
 			},
 		});
-	  }
+	}
 	  
 	async getInvitedUsers(chatId: string) {
 		return await this.databaseService.invite.findMany({
@@ -700,6 +733,23 @@ export default class ChatService {
 				user: true,
 			},
 		});
-	  }
-	
+	}
+
+	async isAdmin(chatId: string, userId: string) {
+		const memberRole = await this.databaseService.member.findFirst({
+			where: {
+				userId: userId,
+				chatId: chatId
+			},
+			select: {
+				role: true
+			}
+		});
+
+		if (!memberRole || (memberRole.role !== 'admin' && memberRole.role !== 'creator')) {
+			return { ok: false };
+		}
+
+		return { ok: true };
+	}
 }

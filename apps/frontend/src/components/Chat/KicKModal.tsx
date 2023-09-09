@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import socket from '../../../socket';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import { isAdmin } from '@api/chat';
 
 const KickModal: React.FC = () => {
 
@@ -12,9 +14,42 @@ const KickModal: React.FC = () => {
 	} = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
     const handleKick = async () => {
         if (activeChannel && activeChannel.id && targetMember) {
+			if (profile.id == targetMember.user.id) {
+				notifcationCtx.enqueueNotification({
+					message: `You can't kick yourself.`,
+					type: "default"
+				});
+				setShowKickModal(false);
+				setTargetMember(null);
+				return ;
+			}
+			const checkAdmin = await isAdmin(activeChannel.id, profile.id);
+			if (!checkAdmin.ok) {
+				notifcationCtx.enqueueNotification({
+					message: `Only admin or creator can kick users.`,
+					type: "default"
+				});
+				setShowKickModal(false);
+				setTargetMember(null);
+				return ;
+			}
+			if (targetMember.role == 'creator') {
+				notifcationCtx.enqueueNotification({
+					message: `You can't kick the creator.`,
+					type: "default"
+				});
+				setShowKickModal(false);
+				setTargetMember(null);
+				return ;
+			}
+			notifcationCtx.enqueueNotification({
+				message: `${targetMember.user.username} has been kicked from ${activeChannel.name}.`,
+				type: "default"
+			});
 			socket.emit('kickUserFromChat', { chatId: activeChannel.id, adminUserId: profile.id, targetUserId: targetMember.user.id } );
 			setShowKickModal(false);
 			setTargetMember(null);

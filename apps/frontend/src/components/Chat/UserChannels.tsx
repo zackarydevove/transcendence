@@ -4,11 +4,13 @@ import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { Chat } from '@interface/Interface';
 import { getUserChats } from '@api/chat';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const UserChannels: React.FC = () => {
     const { search, setSearch, activeChannel, setActiveChannel, myGroups, setMyGroups } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
 	useEffect(() => {
 		const fetchChats = async () => {
@@ -18,10 +20,16 @@ const UserChannels: React.FC = () => {
 					if (Array.isArray(fetchedGroups)) {
 						setMyGroups(fetchedGroups);
 					} else {
-						console.error("Received data is not an array:", fetchedGroups);
+						notifcationCtx.enqueueNotification({
+							message: `An error has occured.`,
+							type: "default"
+						});
 					}
 				} catch (error) {
-					console.error("Error fetching groups:", error);
+					notifcationCtx.enqueueNotification({
+						message: `An error has occured.`,
+						type: "default"
+					});
 				}
 			}
 		}

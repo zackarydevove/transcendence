@@ -3,6 +3,7 @@ import { useStore } from '@/state/store';
 import { createChat } from '@api/chat';
 import { ChatType } from '@interface/Interface';
 import useUserContext from '@contexts/UserContext/useUserContext';
+import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 
 const CreateChat: React.FC = () => {
 
@@ -17,6 +18,7 @@ const CreateChat: React.FC = () => {
     } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
+	const notifcationCtx = useNotificationContext();
 
     const handleChannelTypeChange = (channelType: ChatType) => {
         setChannelType(channelType);
@@ -34,10 +36,16 @@ const CreateChat: React.FC = () => {
 	const handleCreateChat = async (type: ChatType, name: string, password?: string) => {
             try {
                 const response = await createChat(type, name, profile.id, password);
-                console.log("Channel has been created: \n", response);
+				notifcationCtx.enqueueNotification({
+					message: `Channel ${response.name} has been created.`,
+					type: "default"
+				});
 				setCreateOpen(false);
             } catch (error) {
-                console.error("Error creating chat", error);
+				notifcationCtx.enqueueNotification({
+					message: `An error has occured.`,
+					type: "default"
+				});
             }
 	}
 
