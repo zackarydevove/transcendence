@@ -5,7 +5,7 @@ import useNotificationContext from "@contexts/NotificationContext/useNotificatio
 import createUserStore, { UserState, UserStore } from "./createUserStore";
 import { AuthContext } from "@contexts/AuthContext/AuthContext";
 import { useStore } from "zustand";
-import socket from "../../../socket";
+import socket from "@utils/socket";
 
 export const UserContext = createContext({} as UserStore)
 

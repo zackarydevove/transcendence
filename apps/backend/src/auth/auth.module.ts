@@ -4,6 +4,7 @@ import AuthService from "./auth.service";
 import DatabaseService from "src/database/database.service";
 import UserService from "src/user/user.service";
 import AuthMiddleware from "./auth.middleware";
+import EmailService from "src/email/email.service";
 
 @Module({
   controllers: [AuthController],
@@ -11,6 +12,7 @@ import AuthMiddleware from "./auth.middleware";
     DatabaseService,
     UserService,
     AuthService,
+    EmailService,
   ]
 })
 export default class AuthModule implements NestModule {

@@ -1,7 +1,7 @@
 import { verify, sign } from 'jsonwebtoken'
 import { createHash } from 'crypto'
 
-const createToken = (
+export const createToken = (
   payload: Record<string, any>,
   expiresIn: string | number
 ) => {

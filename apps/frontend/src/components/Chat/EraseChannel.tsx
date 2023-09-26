@@ -14,7 +14,7 @@ const EraseChannel: React.FC = () => {
     const handleEraseChannel = async () => {
         if (activeChannel && activeChannel.id) {
             try {
-                const res = await deleteChat(activeChannel.id, profile.id);
+                const res = await deleteChat(activeChannel.id, profile?.id);
 				if (res.error) {
 					notifcationCtx.enqueueNotification({
 						message: res.error,

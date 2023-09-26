@@ -1,7 +1,8 @@
-import socket from "../../socket";
+import { createUrl } from "@utils";
+import socket from "../utils/socket";
 import { ChatType } from "@interface/Interface";
 
-const BASE_URL = process.env.BACKEND_URL || "http://localhost:8080";  // adjust the default URL accordingly
+const BASE_URL = createUrl();  // adjust the default URL accordingly
 
 // Creates a new chat with the given type, name, and (optional) password.
 export async function createChat(type: ChatType, name: string, userId: string, password?: string,) {

@@ -3,6 +3,9 @@ import DatabaseService from "src/database/database.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { hash } from "bcrypt";
 import { CreateUserDto } from "./dto/create-user";
+import generateRandomNumber from "src/utils/generateRandomNumber";
+import generateRandomLetter from "src/utils/generateRandomLetter";
+
 
 @Injectable()
 export default class UserService {
@@ -18,6 +21,28 @@ export default class UserService {
       }
     })
     return user
+  }
+
+  async findUserByEmailOrUsername(query: { email?: string, username?: string }) {
+    const users = await this.databaseService.user.findMany({
+      take: 1,
+      where: {
+        OR: [
+          {
+            username: query.username
+          },
+          {
+            email: query.email
+          }
+        ]
+      }
+    })
+    const user = users.length > 0 ? users[0] : null
+    if (user && query.email !== user.email) {
+      console.warn('User found by username instead of email, this is a security issue')
+      return null
+    }
+    return user 
   }
 
   async findUserByEmail(email: string) {
@@ -36,6 +61,41 @@ export default class UserService {
       }
     })
     return user
+  }
+
+  async toggle2fa(userId: string) {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const twoFactorEnabled = !user.twoFactorEnabled;
+
+    await this.databaseService.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        twoFactorEnabled: twoFactorEnabled
+      }
+    })
+
+    return {
+      message: `2FA has been ${twoFactorEnabled ? 'enabled' : 'disabled'}`,
+      twoFactorEnabled: twoFactorEnabled
+    }
+  }
+
+  generate2faSecret() {
+    const secret = Array.from({ length: 6 }).map(() => {
+      const letterOrNumber = generateRandomNumber(0, 1);
+      if (letterOrNumber === 0) {
+        return generateRandomNumber(0, 9);
+      } else {
+        return generateRandomLetter();
+      }
+    }).join('');
+    return secret;
   }
 
   async createUser(createUserDto: CreateUserDto) {
@@ -75,23 +135,23 @@ export default class UserService {
   }
 
   async changeUserStatus(userId: string, status: "online" | "offline" | "ingame") {
-	const user = await this.databaseService.user.findUnique({
-        where: {
-            id: userId
-        }
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id: userId
+      }
     });
 
-	if (!user)
-		throw new Error('User not found');
+    if (!user)
+      throw new Error('User not found');
 
-	return this.databaseService.user.update({
-        where: {
-            id: userId
-        },
-        data: {
-            status: status
-        }
+    return this.databaseService.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        status: status
+      }
     });
-}
+  }
 
 }

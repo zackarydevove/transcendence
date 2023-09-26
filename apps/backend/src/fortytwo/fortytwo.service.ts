@@ -42,7 +42,8 @@ export default class FortyTwoService {
 
   createAuthorizationUrl() {
     const baseUrl = "https://api.intra.42.fr/oauth/authorize"
-    const redirectUri = "http%3A%2F%2Flocalhost%3A8080%2F42%2Foauth%2Fcallback"
+    const redirectUrl = (process.env.NEXT_PUBLIC_CLIENT_BACKEND_URL || "http://localhost:8080") + "/42/oauth/callback"
+    const redirectUri = encodeURIComponent(redirectUrl)
     const scope = "public"
     const responseType = "code"
 
@@ -60,7 +61,7 @@ export default class FortyTwoService {
     try {
       const baseUrl = "https://api.intra.42.fr/oauth/token"
       const grantType = "authorization_code"
-      const redirectUri = "http://localhost:8080/42/oauth/callback"
+      const redirectUri = (process.env.NEXT_PUBLIC_CLIENT_BACKEND_URL || "http://localhost:8080") + "/42/oauth/callback"
 
       const body = {
         client_id: this._clientId,
@@ -82,7 +83,10 @@ export default class FortyTwoService {
 
   async findOrCreateUser(token: FortyTwoToken) {
     const fortyTwoUser = await this.me(token.access_token, token.expires_in)
-    let user = await this.userService.findUserByEmail(fortyTwoUser.email);
+    let user = await this.userService.findUserByEmailOrUsername({
+      email: fortyTwoUser.email,
+      username: fortyTwoUser.login
+    });
 
     if (!user) {
       user = await this.userService.createUser({

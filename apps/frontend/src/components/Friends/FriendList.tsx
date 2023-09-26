@@ -7,7 +7,7 @@ import useUserContext from '@contexts/UserContext/useUserContext';
 import { getFriends, addFriend, deleteFriend, blockUser, unblockUser, getBlockedUsers, getFriendship, getUsers } from '@api/friends';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 import { User } from '@interface/Interface';
-import socket from '../../../socket';
+import socket from '@utils/socket';
 
 const FriendList: React.FC = () => {
 	const [fetch, setFetch] = useState<boolean>(true);
@@ -33,11 +33,12 @@ const FriendList: React.FC = () => {
 
     const fetchList = async () => {
         try {
-            const fetchedData = friendList ? await getFriends(profile.id) : await getUsers();
+            // Fetch friends or users based on the friendList boolean
+            const fetchedData = friendList ? await getFriends(profile?.id) : await getUsers();
 
             if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
                 if (!friendList) {
-                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile.username);
+                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile?.username);
                     setFriends(filteredData);
                 } else {
                     setFriends(fetchedData);
@@ -52,8 +53,8 @@ const FriendList: React.FC = () => {
 
 	const fetchBlockedUsers = async () => {
 		try {
-			const result = await getBlockedUsers(profile.id);
-			setBlockedUsers(result);
+			const result = await getBlockedUsers(profile?.id);
+			setBlockedUsers(result);  // Assuming result is an array of usernames that are blocked
 		} catch (error) {
 			console.error("Failed to fetch blocked users:", error);
 		}
@@ -96,7 +97,7 @@ const FriendList: React.FC = () => {
 	// Get the friendship id to open the chat
 	async function getFriendChat(friend: any) {
 		try {
-			const friendship: any = await getFriendship(profile.id, friend.id);
+			const friendship: any = await getFriendship(profile?.id, friend.id);
 			setActiveFriendship(friendship);
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
@@ -117,7 +118,7 @@ const FriendList: React.FC = () => {
 			return ;
 		}
 		try {
-			const updatedUser = await addFriend(profile.id, friend.id);
+			const updatedUser = await addFriend(profile?.id, friend.id);
 			if (updatedUser.blocked) {
 				notifcationCtx.enqueueNotification({
 					message: `You can't add ${friend.username} because he blocked you.`,
@@ -125,22 +126,27 @@ const FriendList: React.FC = () => {
 				});
 				return ;
 			}
-			else if (updatedUser.already) {
+			else if (updatedUser.alreadyRequested) {
 				notifcationCtx.enqueueNotification({
-					message: `${friend.username} is already your friend.`,
+					message: `Friend request to ${friend.username} has already been sent.`,
+					type: "default"
+				});
+			}
+			else if (updatedUser.alreadyFriends) {
+				notifcationCtx.enqueueNotification({
+					message: `You are already friend with ${friend.username}.`,
 					type: "default"
 				});
 			}
 			notifcationCtx.enqueueNotification({
-				message: `User added as friend successfully`,
+				message: `Friend request has been sent successfully`,
 				type: "default"
 			});
-			console.log("friend id: ", friend.id);
 			socket.emit('refetch', { friendId: friend.id });
 			setFetch(!fetch);
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
-				message: `Failed to add friend: ${error}`,
+				message: `Failed to send request to friend: ${error}`,
 				type: "default"
 			});
 		}
@@ -150,7 +156,7 @@ const FriendList: React.FC = () => {
     const handleDeleteFriend = async (friendId: string) => {
 		setDropdownOpen(-1);
         try {
-            const updatedUser = await deleteFriend(profile.id, friendId);
+            const updatedUser = await deleteFriend(profile?.id, friendId);
 			notifcationCtx.enqueueNotification({
 				message: `User is no longer your friend`,
 				type: "default"
@@ -169,7 +175,7 @@ const FriendList: React.FC = () => {
 	async function handleBlockUser(blockedId: string) {
 		setDropdownOpen(-1);
 		try {
-			await blockUser(profile.id, blockedId);
+			await blockUser(profile?.id, blockedId);
 			notifcationCtx.enqueueNotification({
 				message: `User has been blocked`,
 				type: "default"
@@ -188,7 +194,7 @@ const FriendList: React.FC = () => {
 	async function handleUnblockUser(blockedId: string) {
 		setDropdownOpen(-1);
 		try {
-			await unblockUser(profile.id, blockedId);
+			await unblockUser(profile?.id, blockedId);
 			notifcationCtx.enqueueNotification({
 				message: `User has been unblocked`,
 				type: "default"

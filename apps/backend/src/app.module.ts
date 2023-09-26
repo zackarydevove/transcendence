@@ -8,6 +8,7 @@ import AuthModule from './auth/auth.module';
 import UserModule from './user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import FortyTwoModule from './fortytwo/fortytwo.module';
+import GameModule from './game/game.module';
 
 @Module({
   imports: [
@@ -21,9 +22,10 @@ import FortyTwoModule from './fortytwo/fortytwo.module';
     AuthModule,
     FortyTwoModule,
     UserModule,
-	FriendsModule,
+	  FriendsModule,
     ChatModule,
-    SocketModule
+    SocketModule,
+    GameModule,
   ],
 })
 export class AppModule { }

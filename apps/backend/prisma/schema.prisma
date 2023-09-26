@@ -20,7 +20,11 @@ model User {
   password             String?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
+  twoFactorEnabled     Boolean         @default(false)
+  twoFactorSecret      String?
   refreshTokens        RefreshToken[]
+  initiatedFriendRequests  FriendRequest[] @relation("Requester")
+  receivedFriendRequests   FriendRequest[] @relation("Requestee")
   initiatedFriendships Friendship[]    @relation("FriendshipUser1")
   acceptedFriendships  Friendship[]    @relation("FriendshipUser2")
   blockedFriends       String[]
@@ -28,7 +32,23 @@ model User {
   chats                Member[]
   messages             Message[]
   invited              Invite[]
-  status			   UserStatus		@default(offline)
+  status               UserStatus      @default(offline)
+  wins       Int      @default(0)
+  losses     Int      @default(0)
+  points     Int      @default(0)
+  gamesAsPlayer1 Game[] @relation("GamePlayer1")
+  gamesAsPlayer2 Game[] @relation("GamePlayer2")
+}
+
+model Game {
+  id        String   @id @unique @default(uuid())
+  player1   User     @relation("GamePlayer1", fields: [player1Id], references: [id])
+  player1Id String
+  player2   User     @relation("GamePlayer2", fields: [player2Id], references: [id])
+  player2Id String
+  player1Score Int
+  player2Score Int
+  createdAt DateTime @default(now())
 }
 
 model RefreshToken {
@@ -115,4 +135,13 @@ model Friendship {
   messages  FriendMessage[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+}
+
+model FriendRequest {
+  id          String   @id @unique @default(uuid())
+  requesterId String
+  requester   User     @relation("Requester", fields: [requesterId], references: [id])
+  requesteeId String
+  requestee   User     @relation("Requestee", fields: [requesteeId], references: [id])
+  createdAt   DateTime @default(now())
 }

@@ -3,6 +3,8 @@ import { Server, Socket } from "socket.io";
 import ChatService from "src/chat/chat.service";
 import FriendsService from "src/friends/friends.service";
 import DatabaseService from "src/database/database.service";
+import GameService from '../game/game.service';
+import { disconnect } from "process";
 
 @WebSocketGateway({
     cors: {
@@ -17,6 +19,7 @@ export class SocketEvents {
     server: Server;
 
     constructor(
+        private GameService: GameService,
 		private chatService: ChatService,
 		private friendsService: FriendsService
 	) {}
@@ -29,6 +32,7 @@ export class SocketEvents {
 	// disconnect
     async handleDisconnect(client: Socket){
         console.log(`client disconnected: ${client.id}`);
+        this.GameService.disconnect(client);
 
         const userId = this.clientUserMapping.get(client.id);
         if (userId) {
@@ -127,4 +131,46 @@ export class SocketEvents {
 			throw new WsException(`Error sending message to friend: ${error.message}`);
 		}
 	}
+
+     // start game in multipayer mode
+     @SubscribeMessage('start')
+     async handleStartGameEvent(client: Socket, payload: {date: number, go: number, win: boolean, points_me: number, points_opponent: number}) {
+        await this.GameService.handleStartGame(client, payload);
+     }
+
+     //stop the game when latency
+     @SubscribeMessage('stop')
+     async handleStopGame(client: Socket, payload: {date: number}) {
+         for (const [key, value] of this.GameService.user.entries()) {
+             if (value.Socket === client) {
+                 for (const [key, valu] of this.GameService.user.entries()) {
+                     if (valu.Socket.id === value.opponent_socket_id)
+                         valu.Socket.emit('stop', payload);
+                 }
+                 break;
+                 }
+         }
+     }
+ 
+     // communicate opponent position's
+     @SubscribeMessage('position')
+     async handlePositionGameEvent(client: Socket, payload: {ball_x: number, ball_z: number, barre_x: number, barre_z: number}) {
+         for (const [key, value] of this.GameService.user.entries()) {
+             if (value.Socket === client) {
+                 for (const [key, valu] of this.GameService.user.entries()) {
+                     if (valu.Socket.id === value.opponent_socket_id)
+                         valu.Socket.emit('position', payload);
+                 }
+                 break;
+                 }
+         }
+     }
+     
+     // find opponent for the game and set data
+     @SubscribeMessage('username')
+     async handleUsernameEvent(client: Socket, payload: {username: string, userId: string, opponent_id: string}) {
+         console.log(`Reçu : ${payload.username}`);
+         console.log(`opponent id : ${payload.opponent_id}`);
+         await this.GameService.handleUsername(client, payload);
+     }
 }

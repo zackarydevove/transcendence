@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Query, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, HttpStatus, Query, Req, Res } from "@nestjs/common";
 import FortyTwoService from "./fortytwo.service";
 import AuthService from "src/auth/auth.service";
 import { Response } from "express";
@@ -23,34 +23,25 @@ export default class FortyTwoController {
 
   @Get('oauth/callback')
   async oauthCallback(
+    @Req() req: Request,
     @Res() res: Response,
     @Query("code") code: string
   ) {
+    // @ts-ignore
+    const redirectUrl = process.env.NEXT_PUBLIC_FRONT_URL || req.headers['referer'] as string || null
+    if (!redirectUrl) {
+      throw new Error("NEXT_PUBLIC_FRONT_URL is not defined, something is wrong with the environment variables.")
+    }
+
     try {
       const token = await this.fortyTwoService.getToken(code)
       const user = await this.fortyTwoService.findOrCreateUser(token)
       const session = await this.authService.createSession(user.id)
 
-
-      this.authService.createAuthCookie(res, session, {
-        oauthToken: token.access_token,
-      })
-
-      res.redirect("http://localhost:3000")
+      res.redirect(process.env.NEXT_PUBLIC_FRONT_URL + "?accessToken=" + session.accessToken + "&refreshToken=" + session.refreshToken + "&oauthToken=" + token.access_token)
     } catch (error) {
-      let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
-      if (error instanceof TypedError) {
-        if (error.type === '42_TOKEN_ERROR') {
-          httpStatus = HttpStatus.BAD_REQUEST
-        }
-        if (error.type === '42_USER_ERROR') {
-          httpStatus = HttpStatus.UNAUTHORIZED
-        }
-      }
-      throw new HttpException(
-        error.message,
-        httpStatus,
-      )
+      console.log(error?.message || 'Something went wrong with the 42 oauth callback')
+      res.redirect(redirectUrl + "?error=Something went wrong with the 42 oauth callback")
     }
   }
 

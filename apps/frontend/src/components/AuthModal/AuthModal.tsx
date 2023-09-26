@@ -9,7 +9,7 @@ import AuthModalForm from "./AuthModalForm"
 import AuthModalFormLogin from "./AuthModalFormLogin"
 import AuthModalFormRegister from "./AuthModalFormRegister"
 import type { AuthProps } from "@contexts/AuthContext/createAuthStore"
-import Button from "@mui/material/Button"
+import TwoFAModal from "./TwoFAModal"
 
 
 export interface AuthForm {
@@ -35,8 +35,9 @@ const AuthModal = () => {
   const login = useAuthContext((state) => state.login)
   const register = useAuthContext((state) => state.register)
   const authMode = useAuthContext((state) => state.authMode)
-  const setAuthMode = useAuthContext((state) => state.setAuthMode)
-  const authError = useAuthContext((state) => state.authError)
+  const authError = useAuthContext((state) => state.authError);
+
+  const twoFactorModal = useAuthContext((state) => state.twoFactorModal)
 
   const {
     register: registerField,
@@ -99,37 +100,19 @@ const AuthModal = () => {
     aria-describedby="Ce modal permet de se connecter ou de s'inscrire"
   >
     <Box className="max-w-[335px] flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-8">
-
-      <h1 className='text-3xl font-bold mb-8'>{authMode === "login" ? "LOG IN" : "SIGN UP"}</h1>
-
-      <AuthModalForm onSubmit={handleSubmit(submit)}>
-        {Form && <Form
-          register={registerField}
-          errors={errors}
-          getErrorMessage={getErrorMessage}
-        />}
-      </AuthModalForm>
-
-      <div className='relative w-full mb-4 py-5 mt-4'>
-        <div className='w-full h-1 bg-gray-200'></div>
-        <p className='absolute left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-10 inline-block px-2 bg-white text-gray-500 border border-gray-200'>OR</p>
-      </div>
-
-      <div className='text-center flex gap-1 max-sm:flex-col'>
-        <p className='text-gray-500'>{
-          authMode === "login"
-            ? "Need an account?"
-            : "Already a user?"
-        }</p>
-        <a className='text-indigo-500 hover:underline cursor-pointer' onClick={() => {
-          reset()
-          setAuthMode(authMode === 'login' ? 'register' : 'login')
-        }}>{
-            authMode === "login"
-              ? "SIGN UP"
-              : "LOG IN"
-          }</a>
-      </div>
+      {!twoFactorModal
+        ? <AuthModalForm
+          onSubmit={handleSubmit(submit)}
+          reset={reset}
+        >
+          {Form && <Form
+            register={registerField}
+            errors={errors}
+            getErrorMessage={getErrorMessage}
+          />}
+        </AuthModalForm>
+        : <TwoFAModal />
+      }
     </Box>
   </Modal>
 }

@@ -33,6 +33,22 @@ export interface User {
 	messages: Message[];
 	invited: Invite[];
 	status: UserStatus;
+	wins: number,
+	losses: number,
+	points: number,
+	gamesAsPlayer1: Game[];
+	gamesAsPlayer2: Game[];
+}
+
+export interface Game {
+	id: string;
+	player1: User,
+	player2: User,
+	player1Id: string;
+	player2Id: string;
+	player1Score: number;
+	player2Score: number;
+	createdAt: Date;
 }
   
 export interface RefreshToken {
@@ -107,4 +123,11 @@ export interface Friendship {
 	messages: FriendMessage[];
 	createdAt: Date;
 	updatedAt: Date;
+}
+
+export interface Request {
+    id: string;
+    requester: User;
+    requestee: User;
+    createdAt: Date;
 }

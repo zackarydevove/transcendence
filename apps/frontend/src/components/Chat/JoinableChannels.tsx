@@ -15,7 +15,7 @@ const JoinableChannels: React.FC = () => {
 
     useEffect(() => {
         const fetchChats = async () => {
-            const fetchedGroups = await getAllChats(profile.id);
+            const fetchedGroups = await getAllChats(profile?.id);
             setGroups(fetchedGroups);
         }
 

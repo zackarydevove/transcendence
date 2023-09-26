@@ -53,7 +53,7 @@ const InviteUsers: React.FC = () => {
             try {
                 const fetchedData = await getUsers();
                 if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
-                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile.username);
+                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile?.username);
                     setUsers(filteredData);
                 } else {
                     setUsers([]);
@@ -89,8 +89,8 @@ const InviteUsers: React.FC = () => {
 			if (activeChannel?.id && target) {
 				const bool = invited.some(inv => inv.userId == target.id) ? true : false;
 				const res = bool
-					? await uninviteUserFromChat(activeChannel.id, profile.id, target.id)
-					: await inviteUserToChat(activeChannel.id, profile.id, target.id);
+					? await uninviteUserFromChat(activeChannel.id, profile?.id, target.id)
+					: await inviteUserToChat(activeChannel.id, profile?.id, target.id);
 				if (res.ok) {
 					if (bool) {
 						notifcationCtx.enqueueNotification({
@@ -110,8 +110,8 @@ const InviteUsers: React.FC = () => {
 			if (activeChannel && activeChannel.id && target) {
 				const bool = banned.some(ban => ban == target.id) ? true : false;
 				const res = bool
-					? await unbanUser(activeChannel.id, profile.id, target.id)
-					: await banUser(activeChannel.id, profile.id, target.id)
+					? await unbanUser(activeChannel.id, profile?.id, target.id)
+					: await banUser(activeChannel.id, profile?.id, target.id)
 				if (res.error == "User is not a member of the chat") {
 					notifcationCtx.enqueueNotification({
 						message: `${target.username} is not a member of ${activeChannel.name}.`,

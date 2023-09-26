@@ -102,17 +102,17 @@
 							"urlencoded": [
 								{
 									"key": "email",
-									"value": "arthur@email.com",
+									"value": "{{TEST_EMAIL}}",
 									"type": "text"
 								},
 								{
 									"key": "password",
-									"value": "password00..Ab",
+									"value": "{{TEST_PASSWORD}}",
 									"type": "text"
 								},
 								{
 									"key": "username",
-									"value": "atinseau",
+									"value": "{{TEST_USERNAME}}",
 									"type": "text"
 								}
 							]
@@ -132,6 +132,70 @@
 				},
 				{
 					"name": "signin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"const { accessToken, refreshToken, userId } = pm.response.json()",
+									"",
+									"// Update collection variables with the return of login route",
+									"if (accessToken && refreshToken) {",
+									"    pm.collectionVariables.set(\"ACCESS_TOKEN\", accessToken);",
+									"    pm.collectionVariables.set(\"REFRESH_TOKEN\", refreshToken);",
+									"}",
+									"",
+									"if (userId) {",
+									"    pm.collectionVariables.set(\"USER_ID\", userId)",
+									"}",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "{{TEST_EMAIL}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{TEST_PASSWORD}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "atinseau",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{URL}}/auth/signin",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2fa callback",
 					"event": [
 						{
 							"listen": "test",
@@ -158,25 +222,32 @@
 							"mode": "urlencoded",
 							"urlencoded": [
 								{
-									"key": "email",
-									"value": "arthur@email.com",
+									"key": "userId",
+									"value": "{{USER_ID}}",
 									"type": "text"
 								},
 								{
-									"key": "password",
-									"value": "password00..Ab",
+									"key": "secretCode",
+									"value": "5d3898",
 									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "atinseau",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
 						"url": {
-							"raw": "{{URL}}/auth/signin",
+							"raw": "{{URL}}/auth/2fa/callback",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"auth",
-								"signin"
+								"2fa",
+								"callback"
 							]
 						}
 					},
@@ -305,6 +376,34 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Setup 2fa",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{URL}}/user/2fa",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"user",
+								"2fa"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -398,6 +497,22 @@
 		{
 			"key": "REFRESH_TOKEN",
 			"value": "refresh_token"
+		},
+		{
+			"key": "USER_ID",
+			"value": "automatic variable"
+		},
+		{
+			"key": "TEST_EMAIL",
+			"value": "zewoboquebou-7072@yopmail.com"
+		},
+		{
+			"key": "TEST_PASSWORD",
+			"value": "password00..Ab"
+		},
+		{
+			"key": "TEST_USERNAME",
+			"value": "atinseau2"
 		}
 	]
 }

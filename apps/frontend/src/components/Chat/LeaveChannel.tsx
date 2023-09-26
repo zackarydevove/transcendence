@@ -14,7 +14,7 @@ const LeaveChannel: React.FC = () => {
     const handleLeaveChannel = async () => {
         if (activeChannel && activeChannel.id) {
             try {
-                const response = await deleteMember(activeChannel.id, profile.id);
+                const response = await deleteMember(activeChannel.id, profile?.id);
 				if (response.id || response.message === "Chat successfully deleted") {
 					notifcationCtx.enqueueNotification({
 						message: `You have left ${activeChannel.name} successfully.`,

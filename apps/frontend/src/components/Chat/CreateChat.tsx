@@ -35,7 +35,7 @@ const CreateChat: React.FC = () => {
 
 	const handleCreateChat = async (type: ChatType, name: string, password?: string) => {
             try {
-                const response = await createChat(type, name, profile.id, password);
+                const response = await createChat(type, name, profile?.id, password);
 				notifcationCtx.enqueueNotification({
 					message: `Channel ${response.name} has been created.`,
 					type: "default"

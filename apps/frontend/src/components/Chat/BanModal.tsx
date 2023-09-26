@@ -12,7 +12,7 @@ const BanModal: React.FC = () => {
 
     const handleBan = async () => {
         if (activeChannel && activeChannel.id && targetMember) {
-			if (profile.id == targetMember.user.id) {
+			if (profile?.id == targetMember.user.id) {
 				notifcationCtx.enqueueNotification({
 					message: `You can't ban yourself.`,
 					type: "default"
@@ -30,7 +30,7 @@ const BanModal: React.FC = () => {
 				setTargetMember(null);
 				return ;
 			}
-			const res = await banUser(activeChannel.id, profile.id, targetMember.user.id)
+			const res = await banUser(activeChannel.id, profile?.id, targetMember.user.id)
 			if (res.error == "User is not a member of the chat") {
 				notifcationCtx.enqueueNotification({
 					message: `${targetMember.user.username} is not a member of ${activeChannel.name}.`,

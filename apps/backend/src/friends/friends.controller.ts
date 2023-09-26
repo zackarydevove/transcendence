@@ -74,4 +74,22 @@ export class FriendsController {
 	async getFriendshipExist(@Param('friendshipId') friendshipId: string) {
 		return this.friendsService.getFriendshipFromId(friendshipId);
 	}
+
+    // fetch pending friend requests
+    @Get('friend-requests/:userId')
+    async fetchFriendRequests(@Param('userId') userId: string) {
+        return this.friendsService.fetchFriendRequests(userId);
+    }
+
+    // accept a friend request
+    @Post('friend-requests/accept')
+    async acceptFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
+        return this.friendsService.acceptFriendRequest(userId, friendRequestId);
+    }
+
+    // decline a friend request
+    @Delete('friend-requests/decline')
+    async declineFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
+        return this.friendsService.declineFriendRequest(userId, friendRequestId);
+    }
 }

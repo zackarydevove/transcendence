@@ -1,5 +1,6 @@
-import socket from "../../socket";
-const BASE_URL = process.env.BACKEND_URL || "http://localhost:8080";  // adjust the default URL accordingly
+import { createUrl } from "@utils";
+import socket from "../utils/socket";
+const BASE_URL = createUrl()  // adjust the default URL accordingly
 
 // Return user's friend list or empty array
 export async function getFriends (userId: string) {
@@ -144,3 +145,41 @@ export async function checkIfFriendshipExists(friendshipId: string) {
 
     return response.json();
 }
+
+// Function to accept a friend request
+export async function acceptFriendRequest(userId: string, friendRequestId: string) {
+    const response = await fetch(`${BASE_URL}/friends/friend-requests/accept`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, friendRequestId })
+    });
+
+    return response.json();
+};
+
+// Function to refuse a friend request
+export async function declineFriendRequest(userId: string, friendRequestId: string) {
+    const response = await fetch(`${BASE_URL}/friends/friend-requests/decline`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, friendRequestId })
+    });
+
+    return response.json();
+};
+
+// Function to fetch pending friend requests
+export async function fetchFriendRequests(userId: string) {
+    const response = await fetch(`${BASE_URL}/friends/friend-requests/${userId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    return response.json();
+};

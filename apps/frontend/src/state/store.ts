@@ -63,6 +63,8 @@ type Store = {
 	setActiveFriendship: (activeFriendship: Friendship | null) => void,
 	messages: FriendMessage[]
 	setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => void;
+    friendRequestOpen: boolean,
+    setFriendRequestOpen: (value: boolean) => void,
   },
   profile: {
     isHovered: boolean,
@@ -144,6 +146,8 @@ export const useStore = create<Store>((set) => ({
 		  set((state) => ({ friends: { ...state.friends, messages: value } }));
 		}
 	},
+    friendRequestOpen: false,
+    setFriendRequestOpen: (friendRequestOpen: boolean) => set((state) => ({ friends: { ...state.friends, friendRequestOpen } })),
   },
   profile: {
     isHovered: false,

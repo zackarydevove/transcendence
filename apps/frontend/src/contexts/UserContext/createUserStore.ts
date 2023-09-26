@@ -4,12 +4,16 @@ import { createUrl } from "@utils";
 import { createStore } from "zustand";
 
 interface UserProps {
-  profile?: any
+  profile?: {
+    [key: string]: any
+    twoFactorEnabled: boolean
+  }
 }
 
 interface UserActions {
   loadProfile: () => Promise<any>
   reset: () => void
+  toggleTwoFactor: () => void
 }
 
 type UserState = UserProps & UserActions;
@@ -32,9 +36,12 @@ const createUserStore = (options: CreateUserStoreOptions) => {
 
   return createStore<UserState>((set, get) => {
 
-    const fetchProfile = async (): Promise<any> => {
-      const response = await fetch(createUrl('/user/profile'), {
-        method: 'GET',
+    const safeUserRequest = async (
+      url: string,
+      method: 'GET' | 'PATCH' | 'POST'
+    ): Promise<any> => {
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Authorization': `Bearer ${getState().session?.accessToken}`
         }
@@ -44,15 +51,16 @@ const createUserStore = (options: CreateUserStoreOptions) => {
         if (!isRefreshed) {
           throw new Error('User is not logged in anymore')
         }
-        return fetchProfile()
+        return safeUserRequest(url, method)
       }
       return await response.json()
     }
 
+
     return {
       loadProfile: async () => {
         try {
-          const profile = await fetchProfile()
+          const profile = await safeUserRequest(createUrl('/user/profile'), 'GET')
           set({
             profile,
           })
@@ -67,6 +75,25 @@ const createUserStore = (options: CreateUserStoreOptions) => {
         set({
           profile: undefined,
         })
+      },
+      toggleTwoFactor: async () => {
+        const twoFactor = await safeUserRequest(createUrl('/user/2fa'), 'PATCH')
+
+        console.log(twoFactor)
+
+        if (twoFactor.message) {
+          notificationContext.enqueueNotification({
+            type: 'success',
+            message: twoFactor.message
+          })
+          set({
+            profile: {
+              ...get().profile,
+              twoFactorEnabled: twoFactor.twoFactorEnabled
+            }
+          })
+        }
+
       }
     }
   })

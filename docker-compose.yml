@@ -51,7 +51,7 @@ services:
     env_file:
       - .env
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+      - NEXT_PUBLIC_CLIENT_BACKEND_URL=${NEXT_PUBLIC_CLIENT_BACKEND_URL}
       - FRONTEND_PORT=${FRONTEND_PORT}
       - ENVIRONMENT=production
     ports:

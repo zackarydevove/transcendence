@@ -46,16 +46,30 @@ export default class FriendsService {
 		// Fetch the friend's blocked users
 		const friend = await this.databaseService.user.findUnique({
 			where: { id: friendId },
-			select: {
-				blockedFriends: true
+				select: {
+					blockedFriends: true
 			}
 		});
-	
+
 		// Check if the friend has blocked the user
 		if (friend && friend.blockedFriends.includes(userId)) {
 			return { blocked: true };
 		}
-	
+
+		// Check if there is an existing friend request
+		const existingRequest = await this.databaseService.friendRequest.findFirst({
+			where: {
+				OR: [
+					{ requesterId: userId, requesteeId: friendId },
+					{ requesterId: friendId, requesteeId: userId }
+				]
+			}
+		});
+
+		if (existingRequest) {
+			return { alreadyRequested: true };
+		}
+
 		// Check if they are already friends
 		const existingFriendship = await this.databaseService.friendship.findFirst({
 			where: {
@@ -65,16 +79,16 @@ export default class FriendsService {
 				]
 			}
 		});
-	
+
 		if (existingFriendship) {
-			return { already: true };
+			return { alreadyFriends: true };
 		}
-	
-		// If they are not blocked and not already friends, create the friendship
-		return this.databaseService.friendship.create({
+
+		// Create a new friend request
+		return this.databaseService.friendRequest.create({
 			data: {
-				user1Id: userId,
-				user2Id: friendId
+				requesterId: userId,
+				requesteeId: friendId
 			}
 		});
 	}
@@ -234,5 +248,65 @@ export default class FriendsService {
 		if (!user)
 			return { error: 'Error updating user status:', ok: false};
 		return { user, ok: true };
+	}
+
+	async acceptFriendRequest(userId: string, friendRequestId: string) {
+		const request = await this.databaseService.friendRequest.findUnique({
+			where: { id: friendRequestId }
+		});
+	
+		if (request && request.requesteeId === userId) {
+			// Create a new friendship
+			await this.databaseService.friendship.create({
+				data: {
+					user1Id: request.requesterId,
+					user2Id: request.requesteeId
+				}
+			});
+	
+			// Delete the friend request
+			await this.databaseService.friendRequest.delete({
+				where: { id: friendRequestId }
+			});
+	
+			return { ok: true };
+		}
+	
+		return { ok: false };
+	}
+	
+	async declineFriendRequest(userId: string, friendRequestId: string) {
+		const request = await this.databaseService.friendRequest.findUnique({
+			where: { id: friendRequestId }
+		});
+	
+		if (request && request.requesteeId === userId) {
+			// Delete the friend request
+			await this.databaseService.friendRequest.delete({
+				where: { id: friendRequestId }
+			});
+	
+			return { ok: true };
+		}
+	
+		return { ok: false };
+	}
+
+	async fetchFriendRequests(userId: string) {
+		const pendingRequests = await this.databaseService.friendRequest.findMany({
+			where: {
+				requesteeId: userId,
+			},
+			include: {
+				requester: {
+					select: {
+						id: true,
+						username: true,
+					}
+				}
+			}
+		});
+	
+		return pendingRequests;
 	}
 }

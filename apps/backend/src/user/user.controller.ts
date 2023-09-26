@@ -21,6 +21,11 @@ export default class UserController {
     return user // TODO: remove password from response
   }
 
+  @Patch('2fa')
+  async setup2fa(@Body('userId') userId: string) {
+    return await this.userService.toggle2fa(userId)
+  }
+
   @Patch('status')
   async changeStatus(@Body('userId') userId: string, @Body('status') status:  "online" | "offline" | "ingame") {
 	  return this.userService.changeUserStatus(userId, status);

@@ -24,7 +24,7 @@ const JoinModal: React.FC = () => {
 			}
 	
 			if (clickedGroup.type === 'private') {
-				const isUserInvited = clickedGroup.invited?.some(invite => invite.userId === profile.id);
+				const isUserInvited = clickedGroup.invited?.some(invite => invite.userId === profile?.id);
 				if (!isUserInvited) {
 					notifcationCtx.enqueueNotification({
 						message: `You are not invited to this channel.`,
@@ -35,7 +35,7 @@ const JoinModal: React.FC = () => {
 				}
 			}
 
-			const res = await addMember(clickedGroup.id, profile.id);
+			const res = await addMember(clickedGroup.id, profile?.id);
 			if (res.error == 'This user is banned from the chat.') {
 				notifcationCtx.enqueueNotification({
 					message: `You are banned from ${clickedGroup.name} channel.`,

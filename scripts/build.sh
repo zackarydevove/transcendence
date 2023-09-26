@@ -11,6 +11,19 @@ MONOREPO_ROOT="$(echo $MONOREPO_ROOT | sed 's/\/scripts//g')"
 
 cd $MONOREPO_ROOT
 
+if [ ! -f ".env.development" ]; then
+  printf "${RED}Please create .env.development file${RESET}\n"
+  exit 1
+fi
+
+
+# it will only start postgres and adminer with a custom env file by docker-compose merging feature
+docker-compose \
+  -f docker-compose.yml \
+  -f docker/docker-compose.dev.yml \
+  up -d \
+  postgres adminer
+
 # build packages
 printf "${GREEN}Building backend...${RESET}\n"
 pnpm --filter @ft/backend run build

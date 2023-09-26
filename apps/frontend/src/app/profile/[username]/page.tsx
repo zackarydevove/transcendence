@@ -23,7 +23,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ params }) => {
                 <TWOFAAuth />
             </div>
             {/* Right : Game Historic*/}
-            <Historic />
+            <Historic username={params.username}/>
         </div>
     </div>
   )

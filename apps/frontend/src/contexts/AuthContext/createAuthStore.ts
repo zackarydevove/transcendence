@@ -23,6 +23,9 @@ interface AuthProps {
     oauthToken?: string;
   }
   authMode?: 'login' | 'register' | 'forgotPassword';
+  twoFactorModal?: boolean;
+  twoFactorUserId?: string;
+  twoFactorRetryCredentials?: LoginOptions;
   authError?: {
     statusCode: number;
     message?: string;
@@ -41,6 +44,8 @@ interface AuthActions {
   logout: () => void;
   toggleModal: () => void;
   refresh: () => Promise<boolean>;
+  startOAuth: (provider: '42') => void;
+  completeTwoFactor: (code: string) => void;
 }
 
 type AuthState = AuthProps & AuthActions;
@@ -83,9 +88,10 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
       ...initialState,
       modalOpen: false,
       isLogged: initialState.session ? true : false,
-      setAuthMode: (authMode) => set((state) => ({ authMode })),
+      setAuthMode: (authMode) => set(() => ({ authMode })),
       toggleModal: () => set((state) => ({
         modalOpen: !state.modalOpen,
+        twoFactorModal: false,
       })),
       startAuth: (authMode) => set((state) => ({
         modalOpen: true,
@@ -115,6 +121,19 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
             message: data?.message || 'Something went wrong',
             type: 'error'
           })
+        }
+
+        if (data.message && data.userId) {
+          notificationContext.enqueueNotification({
+            message: 'Please enter the code sent to your email',
+            type: 'info'
+          })
+          set({
+            twoFactorModal: true,
+            twoFactorUserId: data.userId,
+            twoFactorRetryCredentials: options,
+          })
+          return
         }
 
         if (data.accessToken && data.refreshToken) {
@@ -190,6 +209,112 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
             message: 'You are now logged out',
             type: 'success'
           })
+        }
+      },
+      startOAuth: async (provider) => {
+
+        const redirectUriResponse = await fetch(createUrl('/42/oauth'))
+        if (!redirectUriResponse.ok) {
+          notificationContext.enqueueNotification({
+            message: 'Could not start OAuth process',
+            type: 'error'
+          })
+          return
+        }
+
+        const { url } = await redirectUriResponse.json()
+
+        const popup = window.open(url, 'popup', 'popup=true,width=500,height=500')
+
+        // add event on popup when url change
+
+        const timer = setInterval(async () => {
+          try {
+            if (popup?.closed || !popup?.location.href) {
+              clearInterval(timer)
+              notificationContext.enqueueNotification({
+                message: 'Could not complete OAuth process',
+                type: 'error'
+              })
+              return
+            }
+
+            const popupUrl = new URL(popup.location.href)
+            const appUrl = new URL(window.location.href)
+            if (popupUrl.origin !== appUrl.origin) {
+              return
+            }
+
+            const accessToken = popupUrl.searchParams.get('accessToken')
+            const refreshToken = popupUrl.searchParams.get('refreshToken')
+            const oauthToken = popupUrl.searchParams.get('oauthToken')
+            const error = popupUrl.searchParams.get('error')
+
+            if (!accessToken || !refreshToken || !oauthToken || error) {
+              notificationContext.enqueueNotification({
+                message: 'Something went wrong during OAuth process',
+                type: 'error'
+              })
+              clearInterval(timer)
+              popup.close()
+              return
+            }
+
+            createSession({
+              accessToken,
+              refreshToken,
+              oauthToken,
+            })
+            notificationContext.enqueueNotification({
+              message: 'You are now logged in with 42',
+              type: 'success'
+            })
+            get().toggleModal()
+            clearInterval(timer)
+            popup.close()
+          } catch (e) {
+            console.error(e)
+            notificationContext.enqueueNotification({
+              message: 'Something went wrong during OAuth process',
+              type: 'error'
+            })
+            clearInterval(timer)
+            popup?.close()
+          }
+        }, 400)
+
+        if (popup?.focus) {
+          popup.focus()
+        }
+      },
+      completeTwoFactor: async (code) => {
+        const response = await fetch(createUrl('/auth/2fa/callback'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: get().twoFactorUserId,
+            secretCode: code,
+          })
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+          notificationContext.enqueueNotification({
+            message: 'Something went wrong during 2FA process, please try again',
+            type: 'error'
+          })
+          return
+        }
+
+        if (data.accessToken && data.refreshToken) {
+          createSession(data)
+          notificationContext.enqueueNotification({
+            message: 'You are now registered and logged in',
+            type: 'success'
+          })
+          get().toggleModal()
         }
       }
     }

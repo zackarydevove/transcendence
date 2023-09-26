@@ -36,7 +36,7 @@ const ProfileData: React.FC<ProfileDataProps> = ({ username }) => {
 
 
     const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
-		if (profile.id !== user?.id) {
+		if (profile?.id !== user?.id) {
 			notifcationCtx.enqueueNotification({
 				message: `You can modify only your username`,
 				type: "default"
@@ -50,11 +50,6 @@ const ProfileData: React.FC<ProfileDataProps> = ({ username }) => {
         setIsHovered(x);
     }
 
-    // mock data
-    let wins: number = 32;
-    let losses: number = 17;
-    let rankPoints: number = 1230;
-
     return (
         <div className='flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-8'>
             {/* Profile Picture */}
@@ -66,11 +61,11 @@ const ProfileData: React.FC<ProfileDataProps> = ({ username }) => {
                 </div>
                 <div className='ml-4'>
                     <div className='flex gap-1'>
-                        <p>{wins} W</p>
-                        <p>{losses} L</p>
+                        <p>{user ? user.wins : 0} W</p>
+                        <p>{user ? user.losses : 0} L</p>
                     </div>
-                    <p>Winrate: {(wins / (wins + losses) * 100).toFixed(2)}%</p>
-                    <p>{rankPoints} Points</p>
+                    <p>Winrate: {user ? ( user.wins / (user.wins + user.losses) * 100).toFixed(2) : 0}%</p>
+                    <p>{user ? user.points : 0} Points</p>
                 </div>
             </div>
             {/* Username */}
@@ -79,7 +74,7 @@ const ProfileData: React.FC<ProfileDataProps> = ({ username }) => {
                 <input 
                     className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500'
                     type='text'
-                    value={username}
+                    value={user ? username : "User don't exist"}
                     onChange={handleUsernameChange}
                 />
             </div>

@@ -14,9 +14,9 @@ const UserChannels: React.FC = () => {
 
 	useEffect(() => {
 		const fetchChats = async () => {
-			if (profile && profile.id) {
+			if (profile && profile?.id) {
 				try {
-					const fetchedGroups = await getUserChats(profile.id);
+					const fetchedGroups = await getUserChats(profile?.id);
 					if (Array.isArray(fetchedGroups)) {
 						setMyGroups(fetchedGroups);
 					} else {

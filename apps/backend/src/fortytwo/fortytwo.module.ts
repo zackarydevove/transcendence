@@ -6,6 +6,7 @@ import FortyTwoService from "./fortytwo.service";
 import UserService from "src/user/user.service";
 import DatabaseService from "src/database/database.service";
 import AuthService from "src/auth/auth.service";
+import EmailService from "src/email/email.service";
 
 
 
@@ -19,6 +20,7 @@ import AuthService from "src/auth/auth.service";
     UserService,
     AuthService,
     DatabaseService,
+    EmailService,
   ]
 })
 export default class FortyTwoModule implements NestModule {

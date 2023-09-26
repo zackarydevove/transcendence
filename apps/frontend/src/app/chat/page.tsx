@@ -17,6 +17,8 @@ import BanModal from '@/components/Chat/BanModal';
 import JoinModal from '@components/Chat/JoinModal';
 import AdminModal from '@components/Chat/AdminModal';
 import { useStore } from '@/state/store';
+import MenuButton from '@components/MenuButton';
+
 
 const Chat: React.FC = () => {
 
@@ -30,6 +32,8 @@ const Chat: React.FC = () => {
         showBanModal,
 		showJoinModal,
 		showAdminModal,
+		activeChannel, 
+		setActiveChannel,
         userChannels,
         settings
     } = useStore(state => state.chat);
@@ -39,6 +43,8 @@ const Chat: React.FC = () => {
 
             {/* Back Button */}
             <BackButton />
+            {/* Menu Button */}
+            <MenuButton/>
             {/* Create channel button */}
             {createOpen ? <CreateChat/> : null}
         
@@ -55,8 +61,14 @@ const Chat: React.FC = () => {
             {showJoinModal && <JoinModal/>}
 
             <div className='flex items-center justify-center gap-3 h-[700px] w-[1440px]'>
+
+				{/* When it's max-md, we have place for only  one component
+					So I want to show UserChannels or JoinableChannels
+					But if a channel is selected (activeChannel is not empty)
+					I want to show the chat */}
+
                 {/* Left : User's channels / Joinable channels */}
-                <div className='relative flex flex-col gap-3 h-full'>
+                <div className={`relative flex flex-col gap-3 h-full ${activeChannel && 'max-md:hidden'}`}>
                     <div className=' flex flex-col items-center justify-start bg-white rounded-xl shadow-md overflow-y-auto'>
                         {/* Button to create a channel */}
                         <CreateChannelButton/>
@@ -66,7 +78,9 @@ const Chat: React.FC = () => {
                     </div>
                 </div>
                 {/* Right : Chat */}
-                { settings ? <Settings/> : <Discussion/> }
+				<div className={`h-full ${activeChannel || ? '' : 'max-md:hidden'}`}>
+                	{ settings ? <Settings/> : <Discussion/> }
+				</div>
             </div>
         </div>
     )

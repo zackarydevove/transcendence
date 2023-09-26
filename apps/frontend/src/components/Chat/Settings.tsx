@@ -55,7 +55,7 @@ const Settings: React.FC = () => {
 		try {
 			if (activeChannel) {
 				if (type === 'name') {
-					const res = await updateChatName(activeChannel.id, channelName, profile.id);
+					const res = await updateChatName(activeChannel.id, channelName, profile?.id);
 					if (res.error) {
 						notifcationCtx.enqueueNotification({
 							message: res.error,
@@ -70,7 +70,7 @@ const Settings: React.FC = () => {
 					setChannelName("");
 					setActiveChannel(res);
 				} else if (type === 'password') {
-					const res = await updateChatPassword(activeChannel.id, channelPassword, profile.id);
+					const res = await updateChatPassword(activeChannel.id, channelPassword, profile?.id);
 					if (res.error) {
 						notifcationCtx.enqueueNotification({
 							message: res.error,
@@ -98,7 +98,7 @@ const Settings: React.FC = () => {
     const handleChannelPasswordChange = (e: ChangeEvent<HTMLInputElement>) => setChannelPassword(e.target.value);
 
     return (
-        <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full max-md:hidden md:w-[400px] lg:w-[570px] xl:w-[760px] overflow-auto'>
+        <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full md:w-[400px] lg:w-[570px] xl:w-[760px] overflow-auto'>
             <div className='absolute top-2 right-2 cursor-pointer' onClick={() => setSettings(false)}>
                 <AiOutlineClose size={'1.6em'} className='text-indigo-500 hover:text-indigo-600'/>
             </div>

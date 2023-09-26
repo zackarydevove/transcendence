@@ -1,11 +1,12 @@
 'use client'
 import React, { useEffect, useState, useRef } from 'react';
+import { AiOutlineClose } from 'react-icons/ai';
 import { BiSolidSend } from 'react-icons/bi';
 import MessageReceiver from '@components/Chat/MessageReceiver';
 import MessageSender from '@components/Chat/MessageSender';
 import { useStore } from '@/state/store';
 import { getFriendshipMessages, sendFriendMessage, checkIfFriendshipExists } from '@api/friends';
-import socket from '../../../socket';
+import socket from '../../utils/socket';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { FriendMessage } from '@interface/Interface';
 import { messageDate } from '@utils/formatDate';
@@ -16,7 +17,8 @@ const FriendChat: React.FC = () => {
 	const {
 		activeFriendship,
 		messages,
-		setMessages
+		setMessages,
+		setActiveFriendship
 	} = useStore(state => state.friends);
 
 	const profile = useUserContext((state) => state.profile);
@@ -66,7 +68,7 @@ const FriendChat: React.FC = () => {
 					});
 					return ;
 				}
-				await sendFriendMessage(activeFriendship.id, profile.id, messageContent);
+				await sendFriendMessage(activeFriendship.id, profile?.id, messageContent);
 				setMessageContent('');
 			} catch (error) {
 				notifcationCtx.enqueueNotification({
@@ -78,11 +80,14 @@ const FriendChat: React.FC = () => {
 	};
 
     return (
-        <div className='flex flex-col bg-white rounded-xl shadow-md p-8 h-full max-md:hidden md:w-[500px] lg:w-[760px]'>
+        <div className='relative flex flex-col bg-white rounded-xl shadow-md p-8 h-full md:w-[500px] lg:w-[760px]'>
+			<div className='md:hidden absolute top-2 left-2 cursor-pointer' onClick={() => setActiveFriendship(null)}>
+				<AiOutlineClose size={'1.6em'} className='text-indigo-500 hover:text-indigo-600'/>
+			</div>
         
 			<div className='flex flex-col h-full w-full overflow-y-auto mb-4'>
                 {messages.map((msg: FriendMessage, index) => {
-                    if (msg.sender.username === profile.username) {
+                    if (msg.sender.username === profile?.username) {
 						return <MessageSender key={index} time={messageDate(msg.createdAt)} message={msg.content} username={msg.sender.username}/>;
                     } else {
                         return <MessageReceiver key={index} username={msg.sender.username} time={messageDate(msg.createdAt)} message={msg.content} />;

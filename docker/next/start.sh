@@ -1,6 +1,6 @@
 # curl the backend to make sure it's up
 
-while ! curl $BACKEND_URL &> /dev/null; do
+while ! curl "$SERVER_BACKEND_URL" &> /dev/null; do
   echo "Waiting for backend to be ready..."
   sleep 1
 done

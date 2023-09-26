@@ -31,7 +31,7 @@ function clean_docker() {
   docker-compose down
   docker network rm $(docker network ls -q)
   docker image rm $(docker image ls -aq)
-  docker volume rm $(docker volume ls -q)
+  docker volume rm $(docker volume ls --format '{{.Name}}')
 }
 
 # Get all arguments

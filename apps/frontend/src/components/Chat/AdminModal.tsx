@@ -12,7 +12,7 @@ const AdminModal: React.FC = () => {
 
 	const handleSetAdmin = async () => {
 		if (activeChannel && targetMember) {
-			const res = await setAdmin(activeChannel.id, profile.id, targetMember.user.id);
+			const res = await setAdmin(activeChannel.id, profile?.id, targetMember.user.id);
 			if (res.status == "Only admin or creator can set admins.") {
 				notifcationCtx.enqueueNotification({
 					message: `Only admin or creator can set admins.`,

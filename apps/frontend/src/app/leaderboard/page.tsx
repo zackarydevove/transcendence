@@ -1,34 +1,28 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import BackButton from '@/components/BackButton';
-
-interface Player {
-  username: string;
-  points: number;
-  matchesWon: number;
-  matchesLost: number;
-}
+import MenuButton from '@components/MenuButton';
+import { User, Game } from '@interface/Interface';
+import { getUsers } from '@api/friends';
 
 const Leaderboard: React.FC = () => {
   const [search, setSearch] = useState<string>('');
+  const [users, setUsers] = useState<User[] | null>(null);
 
-  // Mock data
-  const players: Player[] = [
-    { username: 'Player 1', points: 2000, matchesWon: 100, matchesLost: 50 },
-    { username: 'Player 2', points: 1800, matchesWon: 90, matchesLost: 60 },
-    { username: 'Player 3', points: 1600, matchesWon: 80, matchesLost: 70 },
-    { username: 'Player 4', points: 2000, matchesWon: 100, matchesLost: 50 },
-    { username: 'Player 5', points: 1800, matchesWon: 90, matchesLost: 60 },
-    { username: 'Player 6', points: 1600, matchesWon: 80, matchesLost: 70 },
-    { username: 'Player 7', points: 2000, matchesWon: 100, matchesLost: 50 },
-    { username: 'Player 8', points: 1800, matchesWon: 90, matchesLost: 60 },
-    { username: 'Player 9', points: 1600, matchesWon: 80, matchesLost: 70 },
-    { username: 'Player 10', points: 2000, matchesWon: 100, matchesLost: 50 },
-    { username: 'Player 11', points: 1800, matchesWon: 90, matchesLost: 60 },
-    { username: 'Player 12', points: 1600, matchesWon: 80, matchesLost: 70 },
-    // More players...
-  ];
+  useEffect(() => {
+	const fetchData = async () => {
+	  try {
+			const res = await getUsers();
+			const sortedRes = res.sort((a: any, b: any) => b.points - a.points);
+			setUsers(sortedRes);
+		 	setUsers(res);
+	  } catch (error) {
+		console.error('Error:', error);
+	  }
+	};
+	fetchData();
+  }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -39,7 +33,8 @@ const Leaderboard: React.FC = () => {
 
       {/* Back Button */}
       <BackButton />
-
+      {/* Menu Button */}
+      <MenuButton/>
       <div className='flex flex-col items-center justify-center gap-3 h-3/4 w-3/4 bg-white rounded-xl shadow-md p-8'>
 
         <h1 className='text-2xl font-bold mb-8'>Leaderboard</h1>
@@ -58,19 +53,19 @@ const Leaderboard: React.FC = () => {
 
         {/* Players List */}
         <div className='w-full h-full overflow-y-auto '>
-          {players.filter(player => player.username.toLowerCase().includes(search.toLowerCase())).map((player, index) => (
+          {users?.filter(user => user.username.toLowerCase().includes(search.toLowerCase())).map((user, index) => (
             <div key={index} className='flex w-full min-w-[500px] items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-100'>
               {/* PP && Username */}
               <div className='flex gap-4 items-center'>
                 <div className='w-12 h-12 bg-pp bg-cover rounded-full'/>
-                <p className='text-gray-700'>{player.username}</p>
+                <p className='text-gray-700'>{user.username}</p>
               </div>
               {/* Points */}
-              <p className='text-gray-700'>{player.points} points</p>
+              <p className='text-gray-700'>{user.points} points</p>
               {/* Matches Won */}
-              <p className='text-green-700'>{player.matchesWon} wins</p>
+              <p className='text-green-700'>{user.wins} wins</p>
               {/* Matches Lost */}
-              <p className='text-red-700'>{player.matchesLost} losses</p>
+              <p className='text-red-700'>{user.losses} losses</p>
             </div>
           ))}
         </div>

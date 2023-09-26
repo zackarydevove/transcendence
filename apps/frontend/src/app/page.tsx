@@ -9,7 +9,6 @@ export default async function Home() {
 
   return (
     <Container className='flex gap-4 items-center justify-center flex-col h-screen w-screen bg-gray-900'>
-
       <div className='flex items-center justify-center gap-6 text-white text-lg'>
         {/* Play */}
         <Link href="/play" className='flex flex-col items-center text-white hover:text-indigo-500'>

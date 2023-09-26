@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpException, HttpStatus, Post, UsePipes, Valid
 import AuthService from "./auth.service";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { RegisterUserDto } from "./dto/register-user.dto";
+import { TwoFaCallbackDto } from "./dto/two-fa-callback.dto";
 
 @UsePipes(new ValidationPipe({
   exceptionFactory(errors) {
@@ -37,6 +38,19 @@ export default class AuthController {
       return await this.authService.register(registerUserDto);
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.CONFLICT)
+    }
+  }
+
+  @Post('2fa/callback')
+  async twoFactorCallback(@Body() twoFaCallbackDto: TwoFaCallbackDto) {
+    try {
+      const {
+        secretCode,
+        userId
+      } = twoFaCallbackDto
+      return await this.authService.complete2fa(userId, secretCode)
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.UNAUTHORIZED)
     }
   }
 
