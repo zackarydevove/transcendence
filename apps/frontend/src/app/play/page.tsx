@@ -1,12 +1,16 @@
+"use client"
 import React from 'react';
-import BackButton from '@/components/BackButton';
 import MenuButton from '@components/MenuButton';
+import InvitePopup from '@components/Game/InvitePopup';
+import useInviteContext from '@contexts/InviteContext/useInviteContext';
 
 const Play: React.FC = () => {
+	const showInvitePopup = useInviteContext((state) => state.showInvitePopup)
+
   return (
     <div className='relative flex flex-col items-center justify-center h-screen w-screen bg-gray-900'>
-        {/* Back Button */}
-        <BackButton />
+		{ showInvitePopup && <InvitePopup/> }
+
         {/* Menu Button */}
         <MenuButton/>
 

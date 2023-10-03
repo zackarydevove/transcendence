@@ -1,3 +1,5 @@
+'use client';
+
 import useAuthContext from "@contexts/AuthContext/useAuthContext"
 import Box from "@mui/material/Box"
 import Modal from "@mui/material/Modal"
@@ -10,6 +12,8 @@ import AuthModalFormLogin from "./AuthModalFormLogin"
 import AuthModalFormRegister from "./AuthModalFormRegister"
 import type { AuthProps } from "@contexts/AuthContext/createAuthStore"
 import TwoFAModal from "./TwoFAModal"
+import AuthModalSendForgotPassword from "./AuthModalSendForgotPassword"
+import AuthModalForgotReset from "./AuthModalForgotReset";
 
 
 export interface AuthForm {
@@ -25,7 +29,7 @@ const forms: Record<NonNullable<AuthProps['authMode']>, React.FC<{
 }>> = {
   login: AuthModalFormLogin,
   register: AuthModalFormRegister,
-  forgotPassword: () => null
+  forgotPassword: AuthModalSendForgotPassword
 }
 
 const AuthModal = () => {
@@ -34,6 +38,9 @@ const AuthModal = () => {
   const toggleModal = useAuthContext((state) => state.toggleModal)
   const login = useAuthContext((state) => state.login)
   const register = useAuthContext((state) => state.register)
+  const forgotPassword = useAuthContext((state) => state.forgotPassword)
+
+  const resetPasswordModal = useAuthContext((state) => state.resetPasswordModal)
   const authMode = useAuthContext((state) => state.authMode)
   const authError = useAuthContext((state) => state.authError);
 
@@ -60,6 +67,8 @@ const AuthModal = () => {
         password: body.password,
         username: body.username
       })
+    } else if (authMode === 'forgotPassword') {
+      forgotPassword(body.email)
     }
   }, [authMode])
 
@@ -100,19 +109,21 @@ const AuthModal = () => {
     aria-describedby="Ce modal permet de se connecter ou de s'inscrire"
   >
     <Box className="max-w-[335px] flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-8">
-      {!twoFactorModal
-        ? <AuthModalForm
-          onSubmit={handleSubmit(submit)}
-          reset={reset}
-        >
-          {Form && <Form
-            register={registerField}
-            errors={errors}
-            getErrorMessage={getErrorMessage}
-          />}
-        </AuthModalForm>
-        : <TwoFAModal />
-      }
+      {twoFactorModal
+        ? <TwoFAModal />
+        : (
+          resetPasswordModal
+            ? <AuthModalForgotReset />
+            : <AuthModalForm
+              onSubmit={handleSubmit(submit)}
+              reset={reset}
+            >
+              {Form && <Form
+                register={registerField}
+                errors={errors}
+                getErrorMessage={getErrorMessage}
+              />}
+            </AuthModalForm>)}
     </Box>
   </Modal>
 }

@@ -190,13 +190,6 @@ export function createintroGUI(elements, Interface, scene, difficulties, points_
             Interface.difficulties_easy_Button_intro.color = 'white';
             Interface.difficulties_expert_Button_intro.color = 'grey';
             Interface.difficulties_medium_Button_intro.color = 'grey';
-            if (difficulties.type === 3)
-            {
-              elements.column.dispose();
-              elements.column1.dispose();
-              elements.column2.dispose();
-              elements.column3.dispose();
-            }
             setDiffilcultyEasy(difficulties, elements);
         }
     });
@@ -206,13 +199,6 @@ export function createintroGUI(elements, Interface, scene, difficulties, points_
             Interface.difficulties_easy_Button_intro.color = 'grey';
             Interface.difficulties_expert_Button_intro.color = 'grey';
             Interface.difficulties_medium_Button_intro.color = 'white';
-            if (difficulties.type === 3)
-            {
-              elements.column.dispose();
-              elements.column1.dispose();
-              elements.column2.dispose();
-              elements.column3.dispose();
-            }
             setDiffilcultyMedium(difficulties, elements);  
         }
     });

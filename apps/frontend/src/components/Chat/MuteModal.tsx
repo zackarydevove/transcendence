@@ -36,7 +36,7 @@ const MuteModal: React.FC = () => {
 				return ;
 			}
             try {
-                const res = await muteMember(activeChannel.id, profile?.id, targetMember.user.id, duration);
+                const res = await muteMember(activeChannel.id, profile.id, targetMember.user.id, duration);
 				if (res.error == "Only admin or creator can mute users.") {
 					notifcationCtx.enqueueNotification({
 						message: `Only admin or creator can mute users.`,

@@ -33,6 +33,8 @@ model User {
   messages             Message[]
   invited              Invite[]
   status               UserStatus      @default(offline)
+  avatar               String? @default("/public/default.png")
+  flag_avatar Boolean @default(false)
   wins       Int      @default(0)
   losses     Int      @default(0)
   points     Int      @default(0)

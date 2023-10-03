@@ -3,13 +3,20 @@ import React from 'react';
 import { useStore } from '@/state/store';
 
 const ChooseList: React.FC = () => {
-    const { setDropdownOpen, friendList, setFriendList, setSearch } = useStore(state => state.friends);
+    const {
+        setDropdownOpen,
+        friendList,
+        setFriendList,
+        setSearch,
+        setActiveChatId
+    } = useStore(state => state.friends);
 
     // Everytime we change the toggle, reset the search, and close the dropdown
     const handleFriendList = (x: boolean) => {
         setFriendList(x);
         setDropdownOpen(-1);
         setSearch("");
+        setActiveChatId(null);
     }
 
     return (

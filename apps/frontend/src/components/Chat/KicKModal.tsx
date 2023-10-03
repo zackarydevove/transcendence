@@ -3,7 +3,7 @@ import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import socket from '../../utils/socket';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
-import { isAdmin } from '@api/chat';
+import { isAdmin, kickUserFromChat } from '@api/chat';
 
 const KickModal: React.FC = () => {
 
@@ -17,8 +17,8 @@ const KickModal: React.FC = () => {
 	const notifcationCtx = useNotificationContext();
 
     const handleKick = async () => {
-        if (activeChannel && activeChannel.id && targetMember) {
-			if (profile?.id == targetMember.user.id) {
+        if (activeChannel && activeChannel.id && targetMember && profile) {
+			if (profile.id == targetMember.user.id) {
 				notifcationCtx.enqueueNotification({
 					message: `You can't kick yourself.`,
 					type: "default"
@@ -27,7 +27,7 @@ const KickModal: React.FC = () => {
 				setTargetMember(null);
 				return ;
 			}
-			const checkAdmin = await isAdmin(activeChannel.id, profile?.id);
+			const checkAdmin = await isAdmin(activeChannel.id, profile.id);
 			if (!checkAdmin.ok) {
 				notifcationCtx.enqueueNotification({
 					message: `Only admin or creator can kick users.`,
@@ -46,20 +46,30 @@ const KickModal: React.FC = () => {
 				setTargetMember(null);
 				return ;
 			}
+			const isKicked = await kickUserFromChat(activeChannel.id, profile.id, targetMember.user.id);
+			if (isKicked) {
+				notifcationCtx.enqueueNotification({
+					message: `${targetMember.user.username} has been kicked from ${activeChannel.name}.`,
+					type: "default"
+				});
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "Settings" });
+				socket.emit('refetch', { friendId: targetMember.user.id, component: "UserChannels" });
+				socket.emit('refetch', { friendId: targetMember.user.id, component: "Settings" });
+				setShowKickModal(false);
+				setTargetMember(null);
+				return ;
+			}
 			notifcationCtx.enqueueNotification({
-				message: `${targetMember.user.username} has been kicked from ${activeChannel.name}.`,
+				message: isKicked.error,
 				type: "default"
 			});
-			socket.emit('kickUserFromChat', { chatId: activeChannel.id, adminUserId: profile?.id, targetUserId: targetMember.user.id } );
-			setShowKickModal(false);
-			setTargetMember(null);
         }
     }
 
     useEffect(() => {
-        if (activeChannel && activeChannel.id) {
+        if (activeChannel && activeChannel.id && profile) {
 			socket.on("userKicked", (data) => {
-				if (data.kickedUserId === profile?.id) {
+				if (data.kickedUserId === profile.id) {
 					setActiveChannel(null);
 					setMessages([]);
 					setSettings(false);

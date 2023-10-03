@@ -15,8 +15,8 @@ export function stopGame(elements, Interface, scene, time, player_name)
     showMessage("please wait 3 sec, browser performance is too low", scene, Interface.advancedTexture, deltatime - 200);
     setTimeout(() => {
         elements.ball.position.copyFrom(elements.frozenPosition);
-        elements.ball.physicsImpostor.setLinearVelocity(elements.frozenVelocity);
-        console.log("reprise")
+        if (elements.ball.physicsImpostor != undefined)
+            elements.ball.physicsImpostor.setLinearVelocity(elements.frozenVelocity);
         if (player_name.opponent_name != "")
             elements.isRenderingActive = true;
     }, deltatime);

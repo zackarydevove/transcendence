@@ -119,7 +119,8 @@ export function displayCountdown(count, callback, advancedTexture) {
   message_count.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
   message_count.isVisible = false;
   
-  advancedTexture.addControl(message_count);
+  if (advancedTexture != undefined)
+    advancedTexture.addControl(message_count);
   if (count >= 1) {
     message_count.text = count.toString();
     message_count.isVisible = true;

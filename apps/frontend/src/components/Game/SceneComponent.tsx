@@ -24,7 +24,6 @@ const Babylon_pong = () => {
       name: profile.username,
       opponent_name: "bot",
     }
-    console.log(player_name.name);
     window.CANNON = require('cannon');
     window.earcut = require('earcut');
     const difficulties = {
@@ -110,14 +109,15 @@ const Babylon_pong = () => {
     
     let boxDirection = "";
     function updateBoxPosition() {
-      const step = 0.1;
-      const originalPosition = elements.ball.position.clone();
+      const step = 0.0012 * (1000 / deltaTime);
+      const originalPosition = elements.box.position.clone();
+    
       if (boxDirection === "left" && elements.box.position.x >= (-5 + difficulties.width_barre / 2) + step) {
         elements.box.position.x -= step;
       } else if (boxDirection === "right" && elements.box.position.x <= (5 - difficulties.width_barre / 2) - step) {
         elements.box.position.x += step;
       }
-    };
+    }
 
     document.addEventListener("keyup", (event) => {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -141,17 +141,17 @@ const Babylon_pong = () => {
 
     let time = 0;
     let lastime = new Date().getTime() - 35;
+    let deltaTime = 0;
     createScene(elements, difficulties, scene, canvas, Interface, points_game).then((scene) => {
       elements.isRenderingActive = false;
       engine.runRenderLoop(function () {
         if (scene) {
           time = new Date().getTime();
-          const deltaTime = time - lastime;
+          deltaTime = time - lastime;
           lastime = time;
           const currentFPS = 1000 / deltaTime;
           if (currentFPS < 25 && elements.isRenderingActive == true)
           {
-            console.log("too slow " + currentFPS);
             stopGame(elements, Interface, scene, new Date().getTime() + 3000, player_name);
           }
           updateBoxPosition();

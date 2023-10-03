@@ -3,6 +3,7 @@ import { useStore } from '@/state/store';
 import { banUser } from '@api/chat';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 import useUserContext from '@contexts/UserContext/useUserContext';
+import socket from '@utils/socket';
 
 const BanModal: React.FC = () => {
 	const { setShowBanModal, activeChannel, targetMember, setTargetMember, chatMembers, setChatMembers } = useStore(state => state.chat);
@@ -11,8 +12,8 @@ const BanModal: React.FC = () => {
 	const notifcationCtx = useNotificationContext();
 
     const handleBan = async () => {
-        if (activeChannel && activeChannel.id && targetMember) {
-			if (profile?.id == targetMember.user.id) {
+        if (activeChannel && activeChannel.id && targetMember && profile) {
+			if (profile.id == targetMember.user.id) {
 				notifcationCtx.enqueueNotification({
 					message: `You can't ban yourself.`,
 					type: "default"
@@ -23,7 +24,7 @@ const BanModal: React.FC = () => {
 			}
 			if (targetMember.role == 'creator') {
 				notifcationCtx.enqueueNotification({
-					message: `You can't mute the creator.`,
+					message: `You can't ban the creator.`,
 					type: "default"
 				});
 				setShowBanModal(false);
@@ -55,6 +56,8 @@ const BanModal: React.FC = () => {
 					message: `${targetMember.user.username} has been banned from ${activeChannel.name}.`,
 					type: "default"
 				});
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "Settings" });
+				socket.emit('refetch', { friendId: targetMember.user.id, component: "UserChannels" });
 			}
 			setShowBanModal(false);
 			setTargetMember(null);

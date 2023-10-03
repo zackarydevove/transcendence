@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 import createUrl from './createUrl';
 
-const socket = io("http://localhost:8080", {
+const socket = io(createUrl(), {
     withCredentials: true,
 });
 

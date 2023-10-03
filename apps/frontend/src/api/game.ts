@@ -10,7 +10,7 @@ export async function createGame(player1Id: string, player2Id: string) {
 		},
 		body: JSON.stringify({ player1Id, player2Id })
 	});
-	
+
 	return response.json();
 }
 
@@ -23,7 +23,7 @@ export async function updateUserWins(userId: string) {
 		},
 		body: JSON.stringify({ userId })
 	});
-	
+
 	return response.json();
 }
 
@@ -36,7 +36,7 @@ export async function updateUserLosses(userId: string) {
 		},
 		body: JSON.stringify({ userId })
 	});
-	
+
 	return response.json();
 }
 
@@ -49,31 +49,31 @@ export async function updateUserPoints(userId: string, points: number) {
 		},
 		body: JSON.stringify({ userId, points })
 	});
-	
+
 	return response.json();
 }
 
 // Update game score
 export async function updateGameScore(gameId: string, playerWhoScoredId: string) {
-    const response = await fetch(`${BASE_URL}/game/${gameId}/score`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ playerWhoScoredId })
-    });
-
-    return response.json();
-}
-
-// Get all games by username
-export async function getUserAndGamesByUsername(username: string | string[] | undefined) {
-	const response = await fetch(`${BASE_URL}/game/user-games/${username}`, {
-		method: 'GET',
+	const response = await fetch(`${BASE_URL}/game/${gameId}/score`, {
+		method: 'PATCH',
 		headers: {
 			'Content-Type': 'application/json',
 		},
+		body: JSON.stringify({ playerWhoScoredId })
 	});
 
 	return response.json();
+}
+
+export async function getUserAndGamesByUsername(username: string | string[] | undefined) {
+    const response = await fetch(`${BASE_URL}/game/user-games`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username })
+    });
+
+    return response.json();
 }

@@ -225,8 +225,8 @@ export default class ChatService {
 			}
 		});
 
-		if (memberCount > 1 && member.role !== UserRole.creator && member.role !== UserRole.admin) {
-			return { error : 'Only the creator or admin can delete the chat' };
+		if (memberCount > 1 && member.role !== UserRole.creator) {
+			return { error : 'Only the creator can delete the chat' };
 		}
 
 		await this.databaseService.member.deleteMany({

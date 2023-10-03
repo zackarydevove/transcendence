@@ -3,6 +3,8 @@ import AuthService from "./auth.service";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { TwoFaCallbackDto } from "./dto/two-fa-callback.dto";
+import { ForgotCallbackDto } from "./dto/forget-callback.dto";
+import TypedError from "src/errors/TypedError";
 
 @UsePipes(new ValidationPipe({
   exceptionFactory(errors) {
@@ -80,6 +82,30 @@ export default class AuthController {
     try {
       return await this.authService.logout(userId, accessToken);
     } catch (e) {
+      throw new HttpException(e.message, HttpStatus.BAD_REQUEST)
+    }
+  }
+
+  @Post('forgot')
+  async forgot(@Body('email') email: string) {
+
+    if (!email) throw new HttpException('Email is required', HttpStatus.UNPROCESSABLE_ENTITY)
+
+    try {
+      return await this.authService.forgot(email)
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.BAD_REQUEST)
+    }
+  }
+
+  @Post('forgot-callback')
+  async forgotCallback(@Body() forgotCallbackBody: ForgotCallbackDto) {
+    try {
+      return await this.authService.forgotCallback(forgotCallbackBody.token, forgotCallbackBody.password)
+    } catch (e) {
+      if (e instanceof TypedError && e.type === 'conflict') {
+        throw new HttpException(e.message, HttpStatus.CONFLICT)
+      }
       throw new HttpException(e.message, HttpStatus.BAD_REQUEST)
     }
   }

@@ -3,11 +3,11 @@ import FriendsService from './friends.service';
 
 @Controller('friends')
 export class FriendsController {
-	constructor(private friendsService: FriendsService) {}
+	constructor(private friendsService: FriendsService) { }
 
 	// get list of friends of user
-	@Get('get/:userId')
-	async getFriends(@Param('userId') userId: string) {
+	@Post('get')
+	async getFriends(@Body('userId') userId: string) {
 		return this.friendsService.getFriends(userId);
 	}
 
@@ -17,14 +17,14 @@ export class FriendsController {
 		return this.friendsService.addFriend(userId, friendId);
 	}
 
-	@Get('user/:username')
-	async getUser(@Param('username') username: string) {
+	@Post('user')
+	async getUser(@Body('username') username: string) {
 		return this.friendsService.getUser(username);
 	}
 
 	@Get('users')
 	async getUsers() {
-    	return this.friendsService.getUsers();
+		return this.friendsService.getUsers();
 	}
 
 	// delete friendship
@@ -75,21 +75,26 @@ export class FriendsController {
 		return this.friendsService.getFriendshipFromId(friendshipId);
 	}
 
-    // fetch pending friend requests
-    @Get('friend-requests/:userId')
-    async fetchFriendRequests(@Param('userId') userId: string) {
-        return this.friendsService.fetchFriendRequests(userId);
-    }
+	// fetch pending friend requests
+	@Get('friend-requests/:userId')
+	async fetchFriendRequests(@Param('userId') userId: string) {
+		return this.friendsService.fetchFriendRequests(userId);
+	}
 
-    // accept a friend request
-    @Post('friend-requests/accept')
-    async acceptFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
-        return this.friendsService.acceptFriendRequest(userId, friendRequestId);
-    }
+	// accept a friend request
+	@Post('friend-requests/accept')
+	async acceptFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
+		return this.friendsService.acceptFriendRequest(userId, friendRequestId);
+	}
 
-    // decline a friend request
-    @Delete('friend-requests/decline')
-    async declineFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
-        return this.friendsService.declineFriendRequest(userId, friendRequestId);
-    }
+	// decline a friend request
+	@Delete('friend-requests/decline')
+	async declineFriendRequest(@Body('userId') userId: string, @Body('friendRequestId') friendRequestId: string) {
+		return this.friendsService.declineFriendRequest(userId, friendRequestId);
+	}
+
+	@Get('are-friends')
+	async areUsersFriends(@Query('userId1') userId1: string, @Query('userId2') userId2: string) {
+		return this.friendsService.areTheyFriends(userId1, userId2);
+	}
 }

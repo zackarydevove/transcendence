@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { LoginUserDto } from "./dto/login-user.dto";
 
-import { compare } from 'bcrypt'
+import { compare, hash } from 'bcrypt'
 import { v4 as uuid } from "uuid";
 import { createToken, generateTokens, hashToken, verifyToken } from "src/utils/token";
 import UserService from "src/user/user.service";
@@ -11,6 +11,7 @@ import DatabaseService from "src/database/database.service";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { Response } from "express";
 import EmailService from "src/email/email.service";
+import TypedError from "src/errors/TypedError";
 
 
 @Injectable()
@@ -168,6 +169,65 @@ export default class AuthService {
     }
     await this._softDeleteRefreshToken(payload.jti)
     return this.createSession(payload.id)
+  }
+
+  async forgot(email: string) {
+    const user = await this.userService.findUserByEmail(email)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    const token = createToken({ id: user.id }, process.env.FORGOT_PASSWORD_EXPIRES_IN || '5m')
+    this.emailService.send({
+      to: user.email,
+      subject: 'Reset password',
+      html: 'Please click <a href="' + process.env.NEXT_PUBLIC_FRONT_URL + '?reset-token=' + token + '">here</a> to reset your password.<br><br>(pas envie de faire un truc jolie...)',
+    })
+    return {
+      message: 'Email has been sent to your email address'
+    }
+  }
+
+  async forgotCallback(token: string, newPassword: string) {
+    if (await this.cacheManager.get("reset-token:" + token)) {
+      throw new Error('Token already used')
+    }
+
+    const payload = verifyToken<{ id: string }>(token)
+
+    if (!payload || !payload.id) {
+      throw new Error('Expired or invalid token')
+    }
+
+    const user = await this.userService.findUserById(payload.id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    if (user.password && await compare(newPassword, user.password)) {
+      throw new TypedError({
+        message: 'New password cannot be the same as the old one',
+        type: 'conflict'
+      })
+    }
+
+    await this.databaseService.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        password: await hash(newPassword, 10)
+      }
+    })
+    this.emailService.send({
+      to: user.email,
+      subject: 'Password reset',
+      html: 'Your password has been reset.<br><br>(pas envie de faire un truc jolie...)',
+    })
+    await this.cacheManager.set("reset-token:" + token, true, 0)
+    return {
+      message: 'Password has been reset'
+    }
   }
 
   async logout(userId: string, token: string) {

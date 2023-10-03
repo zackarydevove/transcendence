@@ -6,8 +6,12 @@ import { getChatMembers, updateChatName, updateChatPassword } from '@api/chat';
 import { Member } from '@interface/Interface';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 import useUserContext from '@contexts/UserContext/useUserContext';
+import { createAvatarUrl } from '@utils/createUrl';
+import socket from '@utils/socket';
 
 const Settings: React.FC = () => {
+	const [fetch, setFetch] = useState<boolean>(true);
+	const [pendingUserId, setPendingUserId] = useState<string>("");
     const { 
         setSettings, channelName, setChannelName, channelPassword,
         setChannelPassword, setShowInviteModal,
@@ -26,6 +30,7 @@ const Settings: React.FC = () => {
 				if (activeChannel && activeChannel.id) {
 					const members = await getChatMembers(activeChannel.id);
 					setChatMembers(members);
+					setChannelName(activeChannel.name);
 				}
             } catch (error) {
 				notifcationCtx.enqueueNotification({
@@ -36,7 +41,41 @@ const Settings: React.FC = () => {
         };
 
         fetchChatMembers();
-    }, [activeChannel]);
+    }, [activeChannel, fetch]);
+
+
+	// socket
+	useEffect(() => {
+		socket.on('refetchChannel', (data) => {
+			if (data.component === "Settings") {
+				// Save the userId for later use if this happen faster than profile context
+				if (!profile) {
+					setPendingUserId(data.userId); 
+					return;
+				}
+				if (profile.id === data.userId) {
+					setFetch(!fetch);
+				}
+			}
+		});
+
+		socket.on('refetch', (data) => {
+			if (data.component === "FriendList") {
+				// Save the userId for later use if this happen faster than profile context
+				if (!profile) {
+					setPendingUserId(data.userId);
+					return;
+				}
+				if (profile.id === data.userId) {
+					setFetch(!fetch);
+				}
+			}
+		});
+
+		return () => {
+			socket.off('refetchChannel');
+		};
+	}, []);
 
 	const handleAction = (action: string, target: Member) => {
 		if (action == "kick") {
@@ -52,10 +91,11 @@ const Settings: React.FC = () => {
 	}
 
 	const handleUpdate = async (type: 'name' | 'password') => {
+		if (!profile) return;
 		try {
 			if (activeChannel) {
 				if (type === 'name') {
-					const res = await updateChatName(activeChannel.id, channelName, profile?.id);
+					const res = await updateChatName(activeChannel.id, channelName, profile.id);
 					if (res.error) {
 						notifcationCtx.enqueueNotification({
 							message: res.error,
@@ -66,11 +106,12 @@ const Settings: React.FC = () => {
 							message: `Channel name has successfully been changed to ${res.name}.`,
 							type: "default"
 						});
+						socket.emit('refetchChannel', { channelId: activeChannel.id });
 					}
 					setChannelName("");
 					setActiveChannel(res);
 				} else if (type === 'password') {
-					const res = await updateChatPassword(activeChannel.id, channelPassword, profile?.id);
+					const res = await updateChatPassword(activeChannel.id, channelPassword, profile.id);
 					if (res.error) {
 						notifcationCtx.enqueueNotification({
 							message: res.error,
@@ -81,6 +122,7 @@ const Settings: React.FC = () => {
 							message: `Channel password has successfully been changed.`,
 							type: "default"
 						});
+						socket.emit('refetchChannel', { channelId: activeChannel.id });
 					}
 					setChannelPassword("");
 				}
@@ -139,7 +181,7 @@ const Settings: React.FC = () => {
                     {chatMembers?.map((member, index) => (
                     <div key={index} className='flex items-center justify-between gap-4 pr-5 py-1'>
 						<Link href={`/profile/${member.user.username}`}>
-                        	<div className='h-10 w-10 bg-pp bg-contain rounded-full hover:cursor-pointer'/>
+                        	<div className='h-10 w-10 bg-cover rounded-full hover:cursor-pointer' style={{ backgroundImage:createAvatarUrl(member.user.avatar)}}/>
 						</Link>
                         <p className='text-gray-700 flex-grow'>{member.user.username}</p>
                         <p className='text-gray-500 flex-grow text-sm'>{member.role}</p>

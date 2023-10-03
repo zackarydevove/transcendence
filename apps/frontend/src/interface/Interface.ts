@@ -38,6 +38,8 @@ export interface User {
 	points: number,
 	gamesAsPlayer1: Game[];
 	gamesAsPlayer2: Game[];
+	avatar: string,
+	flag_avatar: boolean
 }
 
 export interface Game {

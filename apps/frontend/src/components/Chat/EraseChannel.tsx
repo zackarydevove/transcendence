@@ -3,6 +3,7 @@ import { useStore } from '@/state/store';
 import { deleteChat } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import socket from '@utils/socket';
 
 const EraseChannel: React.FC = () => {
 
@@ -12,9 +13,11 @@ const EraseChannel: React.FC = () => {
 	const notifcationCtx = useNotificationContext();
 
     const handleEraseChannel = async () => {
-        if (activeChannel && activeChannel.id) {
+        if (activeChannel && activeChannel.id && profile) {
             try {
-                const res = await deleteChat(activeChannel.id, profile?.id);
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "Settings" });
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "UserChannels" });
+                const res = await deleteChat(activeChannel.id, profile.id);
 				if (res.error) {
 					notifcationCtx.enqueueNotification({
 						message: res.error,

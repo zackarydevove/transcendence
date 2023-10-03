@@ -3,6 +3,7 @@ import { useStore } from '@/state/store';
 import { setAdmin } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import socket from '@utils/socket';
 
 const AdminModal: React.FC = () => {
 
@@ -11,8 +12,8 @@ const AdminModal: React.FC = () => {
 	const notifcationCtx = useNotificationContext();
 
 	const handleSetAdmin = async () => {
-		if (activeChannel && targetMember) {
-			const res = await setAdmin(activeChannel.id, profile?.id, targetMember.user.id);
+		if (profile && activeChannel && targetMember) {
+			const res = await setAdmin(activeChannel.id, profile.id, targetMember.user.id);
 			if (res.status == "Only admin or creator can set admins.") {
 				notifcationCtx.enqueueNotification({
 					message: `Only admin or creator can set admins.`,
@@ -28,6 +29,7 @@ const AdminModal: React.FC = () => {
 					message: `${targetMember.user.username} is now admin in ${activeChannel.name}.`,
 					type: "default"
 				});
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "Settings" });
 			}
 			setShowAdminModal(false);
 		}

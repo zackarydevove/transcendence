@@ -1,22 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useStore } from '@/state/store';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { Chat } from '@interface/Interface';
 import { getUserChats } from '@api/chat';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import socket from '@utils/socket';
 
 const UserChannels: React.FC = () => {
-    const { search, setSearch, activeChannel, setActiveChannel, myGroups, setMyGroups } = useStore(state => state.chat);
+	const [fetch, setFetch] = useState<boolean>(true);
+	const [pendingUserId, setPendingUserId] = useState<string>("");
+    const { search, setSearch, activeChannel, setActiveChannel, myGroups, setMyGroups, setSettings } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
 	const notifcationCtx = useNotificationContext();
 
 	useEffect(() => {
 		const fetchChats = async () => {
-			if (profile && profile?.id) {
+			if (profile && profile.id) {
 				try {
-					const fetchedGroups = await getUserChats(profile?.id);
+					const fetchedGroups = await getUserChats(profile.id);
 					if (Array.isArray(fetchedGroups)) {
 						setMyGroups(fetchedGroups);
 					} else {
@@ -35,7 +38,53 @@ const UserChannels: React.FC = () => {
 		}
 		
 		fetchChats();
-	}, [profile, activeChannel]);
+	}, [profile, activeChannel, fetch]);
+
+
+	// socket
+	useEffect(() => {
+		socket.on('refetchChannel', (data) => {
+			if (data.component === "UserChannels") {
+				// Save the userId for later use if this happen faster than profile context
+				if (!profile) {
+					setPendingUserId(data.userId); 
+					return;
+				}
+				if (profile.id === data.userId) {
+					setFetch(!fetch);
+				}
+			}
+		});
+
+
+		socket.on('refetch', (data) => {
+			if (data.component === "FriendList") {
+				// Save the userId for later use if this happen faster than profile context
+				if (!profile) {
+					setPendingUserId(data.userId);
+					return;
+				}
+				if (profile.id === data.userId) {
+					setFetch(!fetch);
+				}
+			}
+		});
+
+		return () => {
+			socket.off('refetchChannel');
+			socket.off('refetch');
+		};
+	}, []);
+
+	// Handle the pendingUserId
+	useEffect(() => {
+		if (profile && pendingUserId) {
+			if (profile.id === pendingUserId) {
+				setFetch(!fetch);
+			}
+			setPendingUserId("");
+		}
+	}, [profile, pendingUserId]);
 
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

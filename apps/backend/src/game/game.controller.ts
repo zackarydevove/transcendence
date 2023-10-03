@@ -36,10 +36,11 @@ export class GameController {
     }
 
 	// Get user and his games
-	@Get('user-games/:username')
-	async getUserAndGamesByUsername(@Param('username') username: string) {
+	@Post('user-games')
+	async getUserAndGamesByUsername(@Body('username') username: string) {
 		return this.gameService.getUserAndGamesByUsername(username);
 	}
+
 
 	// Get game information by game Id
 	@Get(':gameId')

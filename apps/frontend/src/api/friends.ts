@@ -3,39 +3,40 @@ import socket from "../utils/socket";
 const BASE_URL = createUrl()  // adjust the default URL accordingly
 
 // Return user's friend list or empty array
-export async function getFriends (userId: string) {
-	const response = await fetch(`${BASE_URL}/friends/get/${userId}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	});
-
-	return response.json();
-};
-
-// Return updated user
-export async function addFriend (userId: string, friendId: string) {
-	const response = await fetch(`${BASE_URL}/friends/add`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ userId, friendId })
-	});
-
-	return response.json();
-};
-
-export async function getUserByUsername(username: string | string[] | undefined) {
-    const response = await fetch(`${BASE_URL}/friends/user/${username}`, {
-        method: 'GET',
+export async function getFriends(userId: string) {
+    const response = await fetch(`${BASE_URL}/friends/get`, {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userId })
     });
 
-	return response.json();
+    return response.json();
+};
+
+// Return updated user
+export async function addFriend(userId: string, friendId: string) {
+    const response = await fetch(`${BASE_URL}/friends/add`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, friendId })
+    });
+
+    return response.json();
+};
+
+export async function getUserByUsername(username: string | string[] | undefined) {
+    const response = await fetch(`${BASE_URL}/friends/user`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username })
+    });
+    return response.json();
 }
 
 // Return all users
@@ -51,20 +52,20 @@ export async function getUsers() {
 }
 
 // Return updated user
-export async function deleteFriend (userId: string, friendId: string) {
-	const response = await fetch(`${BASE_URL}/friends/delete`, {
-		method: 'DELETE',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ userId, friendId })
-	});
+export async function deleteFriend(userId: string, friendId: string) {
+    const response = await fetch(`${BASE_URL}/friends/delete`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, friendId })
+    });
 
-	return response.json();
+    return response.json();
 };
 
 // Return a response after sending a message
-export async function sendFriendMessage (friendshipId: string | undefined, senderId: string, content: string) {
+export async function sendFriendMessage(friendshipId: string | undefined, senderId: string, content: string) {
     if (friendshipId == undefined) return;
 
     socket.emit('sendFriendMessage', {
@@ -75,41 +76,41 @@ export async function sendFriendMessage (friendshipId: string | undefined, sende
 }
 
 // Return a list of messages within a specific friendship
-export async function getFriendshipMessages (friendshipId: string) {
-	const response = await fetch(`${BASE_URL}/friends/messages/${friendshipId}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-		}
-	});
+export async function getFriendshipMessages(friendshipId: string) {
+    const response = await fetch(`${BASE_URL}/friends/messages/${friendshipId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
 
-	return response.json();
+    return response.json();
 };
 
 // Return updated user
-export async function blockUser (userId: string, blockedId: string) {
-	const response = await fetch(`${BASE_URL}/friends/block`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ userId, blockedId })
-	});
+export async function blockUser(userId: string, blockedId: string) {
+    const response = await fetch(`${BASE_URL}/friends/block`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, blockedId })
+    });
 
-	return response.json();
+    return response.json();
 };
 
 // Return updated user
-export async function unblockUser (userId: string, blockedId: string) {
-	const response = await fetch(`${BASE_URL}/friends/unblock`, {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ userId, blockedId })
-	});
+export async function unblockUser(userId: string, blockedId: string) {
+    const response = await fetch(`${BASE_URL}/friends/unblock`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, blockedId })
+    });
 
-	return response.json();
+    return response.json();
 };
 
 // Return list of blocked users for a user
@@ -179,6 +180,18 @@ export async function fetchFriendRequests(userId: string) {
         headers: {
             'Content-Type': 'application/json',
         },
+    });
+
+    return response.json();
+};
+
+// Function to check if two users are friends
+export async function areTheyFriends(userId1: string, userId2: string) {
+    const response = await fetch(`${BASE_URL}/friends/are-friends?userId1=${userId1}&userId2=${userId2}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
     });
 
     return response.json();

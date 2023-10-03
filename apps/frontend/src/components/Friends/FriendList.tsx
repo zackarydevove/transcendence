@@ -8,19 +8,23 @@ import { getFriends, addFriend, deleteFriend, blockUser, unblockUser, getBlocked
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
 import { User } from '@interface/Interface';
 import socket from '@utils/socket';
+import { createAvatarUrl } from '@utils/createUrl';
 
 const FriendList: React.FC = () => {
 	const [fetch, setFetch] = useState<boolean>(true);
-    const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
-    const {
-			dropdownOpen,
-			setDropdownOpen,
-			friendList,
-			search,
-			friends,
-			setFriends,
-			setActiveFriendship,
-			activeFriendship
+	const [pendingUserId, setPendingUserId] = useState<string>("");
+	const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
+
+	const {
+		dropdownOpen,
+		setDropdownOpen,
+		friendList,
+		search,
+		friends,
+		activeChatId,
+		setActiveChatId,
+		setFriends,
+		setActiveFriendship,
 	} = useStore(state => state.friends);
 
 	const notifcationCtx = useNotificationContext();
@@ -31,40 +35,43 @@ const FriendList: React.FC = () => {
 		setDropdownOpen(index === dropdownOpen ? -1 : index);
 	}
 
-    const fetchList = async () => {
-        try {
-            // Fetch friends or users based on the friendList boolean
-            const fetchedData = friendList ? await getFriends(profile?.id) : await getUsers();
-
-            if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
-                if (!friendList) {
-                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile?.username);
-                    setFriends(filteredData);
-                } else {
-                    setFriends(fetchedData);
-                }
-            } else {
-                setFriends([]);
-            }
-        } catch (error) {
-            console.error('Error fetching list:', error);
+	const fetchList = async () => {
+		if (!profile) return;
+		try {
+			// Fetch friends or users based on the friendList boolean
+			const fetchedData = friendList ? await getFriends(profile.id) : await getUsers();
+			if (fetchedData.msg == "User has no friend" || fetchedData.msg == "User not found") {
+				setFriends([]);
+				return;
+			}
+			if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
+				if (!friendList) {
+					const filteredData = fetchedData.filter(userItem => userItem.username !== profile.username);
+					setFriends(filteredData);
+				} else {
+					setFriends(fetchedData);
+				}
+			} else {
+				setFriends([]);
+			}
+		} catch (error) {
 		}
-    };
+	};
 
 	const fetchBlockedUsers = async () => {
+		if (!profile) return;
 		try {
 			const result = await getBlockedUsers(profile?.id);
 			setBlockedUsers(result);  // Assuming result is an array of usernames that are blocked
 		} catch (error) {
-			console.error("Failed to fetch blocked users:", error);
 		}
 	}
 
 	// get friend or user list
-    useEffect(() => {
-        fetchList();
-        fetchBlockedUsers();
-    }, [fetch, friendList]);
+	useEffect(() => {
+		fetchList();
+		fetchBlockedUsers();
+	}, [fetch, friendList, profile]);
 
 	// check if a profile is blocked to show "unblock" instead
 	const isUserBlocked = (friendId: string) => {
@@ -72,32 +79,46 @@ const FriendList: React.FC = () => {
 	};
 
 	// for the searchbar
-	const filteredList = friends.filter(friend => 
+	const filteredList = friends.filter(friend =>
 		friend.username.toLowerCase().includes(search.toLowerCase())
 	);
 
 
-
 	// socket
-    useEffect(() => {
-		socket.on('refetch', (userId: string) => {
-			console.log("userId in refetch: ", userId);
-			console.log("profile.id in refetch: ", profile?.id);
-			if (profile?.id === userId) {
-				console.log("refetch!");
-				setFetch(!fetch);
+	useEffect(() => {
+		socket.on('refetch', (data) => {
+			if (data.component === "FriendList") {
+				// Save the userId for later use if this happen faster than profile context
+				if (!profile) {
+					setPendingUserId(data.userId); 
+					return;
+				}
+				if (profile.id === data.userId) {
+					setFetch(!fetch);
+				}
 			}
 		});
-			
+
 		return () => {
 			socket.off('refetch');
 		};
-    }, []);
+	}, []);
+
+	// Handle the pendingUserId
+	useEffect(() => {
+		if (profile && pendingUserId) {
+			if (profile.id === pendingUserId) {
+				setFetch(!fetch);
+			}
+			setPendingUserId("");
+		}
+	}, [profile, pendingUserId]);
 
 	// Get the friendship id to open the chat
 	async function getFriendChat(friend: any) {
 		try {
 			const friendship: any = await getFriendship(profile?.id, friend.id);
+
 			setActiveFriendship(friendship);
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
@@ -107,6 +128,16 @@ const FriendList: React.FC = () => {
 		}
 	};
 
+
+	// Invite friend to play
+	const handleInviteToPlay = async (friendId: string) => {
+		// Emit the game invitation
+		socket.emit('inviteFriendToPlay', { inviter: profile?.id, invitee: friendId });
+
+		// Redirect to the game waiting room for multiplayer
+		window.location.href = `/game_multi/${friendId}`;
+	}
+
 	// Add user to friend
 	async function handleAddFriend(friend: User) {
 		setDropdownOpen(-1);
@@ -115,7 +146,7 @@ const FriendList: React.FC = () => {
 				message: `You can't add ${friend.username} because he is blocked.`,
 				type: "default"
 			});
-			return ;
+			return;
 		}
 		try {
 			const updatedUser = await addFriend(profile?.id, friend.id);
@@ -124,7 +155,7 @@ const FriendList: React.FC = () => {
 					message: `You can't add ${friend.username} because he blocked you.`,
 					type: "default"
 				});
-				return ;
+				return;
 			}
 			else if (updatedUser.alreadyRequested) {
 				notifcationCtx.enqueueNotification({
@@ -138,12 +169,13 @@ const FriendList: React.FC = () => {
 					type: "default"
 				});
 			}
-			notifcationCtx.enqueueNotification({
-				message: `Friend request has been sent successfully`,
-				type: "default"
-			});
-			socket.emit('refetch', { friendId: friend.id });
-			setFetch(!fetch);
+			else {
+				notifcationCtx.enqueueNotification({
+					message: `Friend request has been sent successfully`,
+					type: "default"
+				});
+				socket.emit('refetch', { friendId: friend.id, component: "FriendRequest" });
+			}
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
 				message: `Failed to send request to friend: ${error}`,
@@ -152,24 +184,25 @@ const FriendList: React.FC = () => {
 		}
 	}
 
-    // Delete user from friend
-    const handleDeleteFriend = async (friendId: string) => {
+
+	// Delete user from friend
+	const handleDeleteFriend = async (friendId: string) => {
 		setDropdownOpen(-1);
-        try {
-            const updatedUser = await deleteFriend(profile?.id, friendId);
+		try {
+			const updatedUser = await deleteFriend(profile?.id, friendId);
 			notifcationCtx.enqueueNotification({
 				message: `User is no longer your friend`,
 				type: "default"
 			});
-			socket.emit('refetch', friendId);
-            setFetch(!fetch);
-        } catch (error) {
+			socket.emit('refetch', { friendId: friendId, component: "FriendList" });
+			setFetch(!fetch);
+		} catch (error) {
 			notifcationCtx.enqueueNotification({
 				message: `Failed to delete friend: ${error}`,
 				type: "default"
 			});
-        }
-    }
+		}
+	}
 
 	// block a user
 	async function handleBlockUser(blockedId: string) {
@@ -180,7 +213,7 @@ const FriendList: React.FC = () => {
 				message: `User has been blocked`,
 				type: "default"
 			});
-			socket.emit('refetch', blockedId);
+			socket.emit('refetch', { friendId: blockedId, component: "FriendList" });
 			setFetch(!fetch);
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
@@ -199,7 +232,7 @@ const FriendList: React.FC = () => {
 				message: `User has been unblocked`,
 				type: "default"
 			});
-			socket.emit('refetch', blockedId);
+			socket.emit('refetch', { friendId: blockedId, component: "FriendList" });
 			setFetch(!fetch);
 		} catch (error) {
 			notifcationCtx.enqueueNotification({
@@ -210,60 +243,63 @@ const FriendList: React.FC = () => {
 	}
 
 	return (
-		<div className='w-full h-full overflow-y-auto'>	
-			{filteredList.map((friend, index) => (
-				<div
-					key={index}
-					className='flex items-center justify-between p-4 border-b border-gray-200 hover:bg-indigo-200 hover:cursor-pointer'
-					onClick={() => {
-						if(friendList) {
-							getFriendChat(friend);
-						}
-					}}
+		<div className='w-full h-full'>
+			{filteredList.map((friend, index) => {
+				return (
+					<div
+						key={friend.id}
+						className={"flex items-center justify-between p-4 border-b border-gray-200 hover:bg-indigo-200 hover:cursor-pointer" + (friend.id === activeChatId ? " bg-indigo-200" : "")}
+						onClick={() => {
+							if (friendList) {
+								setActiveChatId(friend.id);
+								getFriendChat(friend);
+							}
+						}}
 					>
 
-					{/* Profile Picture and Username */}
-					<div className='flex items-center'>
-						<Link href={`/profile/${friend.username}`}>
-							<div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4' />
-						</Link>
-						<p className='text-gray-700'>{friend.username}</p>
-					</div>
+						{/* Profile Picture and Username */}
+						<div className='flex items-center relative'>
+							<Link href={`/profile/${friend.username}`}>
+								<div className='h-12 w-12 bg-cover rounded-full mr-4' style={{ backgroundImage: createAvatarUrl(friend.avatar) }} />
+							</Link>
+							<p className='text-gray-700'>{friend.username}</p>
+						</div>
 
-					{/* Status */}
-					<div>
-						<div className={`
+						{/* Status */}
+						<div>
+							<div className={`
 							h-3 w-3 
 							rounded-full 
-							${friend.status === 'online' ? 'bg-green-500' : 
-							friend.status === 'offline' ? 'bg-red-500' :
-							friend.status === 'ingame' ? 'bg-yellow-400' : ''}
-						`}/>
-					</div>
+							${friend.status === 'online' ? 'bg-green-500' :
+									friend.status === 'offline' ? 'bg-red-500' :
+										friend.status === 'ingame' ? 'bg-yellow-400' : ''}
+						`} />
+						</div>
 
-					{/* Actions */}
-					<div className='relative'>
-						<BsThreeDots className='text-gray-500 cursor-pointer'
-									onClick={(event: any) => toggleDropdown(event, index)} />
-						{dropdownOpen === index && (
-							<div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
-								<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'>Invite to play</div>
-								<div 
-									onClick={() => friendList ? handleDeleteFriend(friend.id) : handleAddFriend(friend)}
-									className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
-									>
+						{/* Actions */}
+						<div>
+							<BsThreeDots className='text-gray-500 cursor-pointer'
+								onClick={(event: any) => toggleDropdown(event, index)} />
+							{dropdownOpen === index && (
+								<div className='absolute z-20 right-0 w-40 mt-2 bg-white border rounded shadow-xl'>
+									<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
+										onClick={() => handleInviteToPlay(friend.id)}>
+										Invite to play
+									</div>
+									<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
+										onClick={() => friendList ? handleDeleteFriend(friend.id) : handleAddFriend(friend)}>
 										{friendList ? "Delete friend" : "Add friend"}
+									</div>
+									<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
+										onClick={() => isUserBlocked(friend.id) ? handleUnblockUser(friend.id) : handleBlockUser(friend.id)}>
+										{isUserBlocked(friend.id) ? "Unblock profile" : "Block profile"}
+									</div>
 								</div>
-								<div className='transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-indigo-500 hover:text-white'
-									onClick={() => isUserBlocked(friend.id) ? handleUnblockUser(friend.id) : handleBlockUser(friend.id)}
-								>
-									{isUserBlocked(friend.id) ? "Unblock profile" : "Block profile"}
-								</div>
-							</div>
-						)}
+							)}
+						</div>
 					</div>
-				</div>
-			))}
+				)
+			})}
 		</div>
 	);
 }

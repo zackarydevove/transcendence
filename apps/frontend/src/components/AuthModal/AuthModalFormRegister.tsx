@@ -52,6 +52,14 @@ const AuthModalFormRegister: React.FC<AuthModalFormRegisterProps> = ({
           value: true,
           message: 'Username is required'
         },
+        maxLength: {
+          value: 20,
+          message: 'Username cannot be longer than 20 characters'
+        },
+        validate: (value) => {
+          const regex = /^[a-z0-9_.-]*$/
+          return regex.test(value) ? true : 'You can only use letters (miniscule), numbers, underscores, dots and dashes'
+        }
       })}
     />
     <TextField

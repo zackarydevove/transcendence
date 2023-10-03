@@ -3,18 +3,19 @@ import { useStore } from '@/state/store';
 import { deleteMember } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import socket from '@utils/socket';
 
 const LeaveChannel: React.FC = () => {
 
-    const { setShowLeaveModal, activeChannel, setActiveChannel, setMyGroups, myGroups, setSettings } = useStore(state => state.chat);
+    const { setShowLeaveModal, activeChannel, setActiveChannel, setMyGroups, myGroups, setSettings, setChatMembers, setMessages } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
 	const notifcationCtx = useNotificationContext();
 
     const handleLeaveChannel = async () => {
-        if (activeChannel && activeChannel.id) {
+        if (activeChannel && activeChannel.id && profile) {
             try {
-                const response = await deleteMember(activeChannel.id, profile?.id);
+                const response = await deleteMember(activeChannel.id, profile.id);
 				if (response.id || response.message === "Chat successfully deleted") {
 					notifcationCtx.enqueueNotification({
 						message: `You have left ${activeChannel.name} successfully.`,
@@ -24,8 +25,11 @@ const LeaveChannel: React.FC = () => {
 					setSettings(false);
 					const updatedGroups = myGroups.filter(group => group.id !== activeChannel.id);
 					setMyGroups(updatedGroups);
+					setChatMembers(null);
+					setMessages([]);
 				}
 				setShowLeaveModal(false);
+				socket.emit('refetchChannel', { channelId: activeChannel.id, component: "Settings" });
             } catch (error) {
 				notifcationCtx.enqueueNotification({
 					message: `An error has occured`,

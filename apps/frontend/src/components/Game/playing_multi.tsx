@@ -5,6 +5,7 @@ import {createGUI} from './interface_multi'
 import {restartScene} from './create_scene_multi'
 import { textEndGame } from './buttons';
 
+
 export function play_management(elements, difficulties, Interface, scene, points_game, start, player_name, socket)
 {
   if (elements.ball.position.x < -5) {

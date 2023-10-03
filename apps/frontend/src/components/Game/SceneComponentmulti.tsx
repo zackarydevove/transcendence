@@ -11,6 +11,8 @@ import socket from '../../utils/socket';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { textEndGame } from './buttons';
 import { stopGame } from './utils';
+import { createUrl } from '@utils';
+
 
 const Babylon_pong_multi = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -20,7 +22,7 @@ const Babylon_pong_multi = () => {
     if (!canvasRef.current || !profile || !profile.username) {
       return;
     }
-
+    
     const player_name = {
       event: 'username',
       name: profile.username,
@@ -86,32 +88,33 @@ const Babylon_pong_multi = () => {
     socket.emit('username', username);
 
     socket.on('opponent', (message) => {
-    player_name.opponent_name = message.opponent_name;
-    player_name.opponent_id = message.opponent_id;
-    if (player_name.opponent_name == "")
-    {
-      elements.ball.isVisible = false;
-      elements.ball.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
-      elements.ball.position.x = 0;
-      elements.ball.position.y = 0.16;
-      elements.ball.position.z = 0;
-      elements.ball.isVisible = true;
-      elements.isRenderingActive = false;
-      elements.ball.isVisible = true;
-      points_game.me = 0;
-      points_game.opponent = 0;
-      start.points_me = 0;
-      start.points_opponent = 0;
-    }
-    elements.started = 0;
-    if (elements.start == 1)
-      createGUI(elements, Interface, scene, difficulties, points_game, start, player_name);
-    });
+      player_name.opponent_name = message.opponent_name;
+      player_name.opponent_id = message.opponent_id;
+      if (player_name.opponent_name == "")
+      {
+          elements.ball.isVisible = false;
+          if (elements.isRenderingActive)
+            elements.ball.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
+          elements.ball.position.x = 0;
+          elements.ball.position.y = 0.16;
+          elements.ball.position.z = 0;
+          elements.ball.isVisible = true;
+          elements.isRenderingActive = false;
+          elements.ball.isVisible = true;
+        points_game.me = 0;
+        points_game.opponent = 0;
+        start.points_me = 0;
+        start.points_opponent = 0;
+      }
+      elements.started = 0;
+      if (elements.start == 1)
+        createGUI(elements, Interface, scene, difficulties, points_game, start, player_name);
+      });
 
-    socket.on('stop', (message) => {
-      if (elements.isRenderingActive === true)
-          stopGame(elements, Interface, scene, message.date, player_name);
-    });
+      socket.on('stop', (message) => {
+        if (elements.isRenderingActive === true)
+            stopGame(elements, Interface, scene, message.date, player_name);
+      });
 
     socket.on('position', (message) => {
       position_opponent.ball_x = message.ball_x;
@@ -121,7 +124,6 @@ const Babylon_pong_multi = () => {
     });
 
     socket.on('start', (message) => {
-      console.log('Message reçu:', message);
       start.go = 1;
       start.date = message.date;
       start.win = message.win;
@@ -195,15 +197,17 @@ const Babylon_pong_multi = () => {
     }
 
     let boxDirection = "";
+
     function updateBoxPosition() {
-      const step = 0.1;
-      const originalPosition = elements.ball.position.clone();
+      const step = 0.001 * (1000 / deltaTime);
+      const originalPosition = elements.box.position.clone();
+
       if (boxDirection === "left" && elements.box.position.x >= (-5 + difficulties.width_barre / 2) + step) {
         elements.box.position.x -= step;
       } else if (boxDirection === "right" && elements.box.position.x <= (5 - difficulties.width_barre / 2) - step) {
         elements.box.position.x += step;
       }
-    };
+    }
 
     document.addEventListener("keyup", (event) => {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -228,14 +232,14 @@ const Babylon_pong_multi = () => {
 
     let time = 0;
     let lastime = new Date().getTime() - 35;
-
+    let deltaTime = 0;
     createScene(elements, difficulties, scene, canvas, Interface, points_game, start, player_name).then((scene) => {
       elements.isRenderingActive = false;
       start.go = 0;
       engine.runRenderLoop(function () {
         if (scene) {
           time = new Date().getTime();
-          const deltaTime = time - lastime;
+          deltaTime = time - lastime;
           lastime = time;
           const currentFPS = 1000 / deltaTime;
           if (currentFPS < 25 && elements.isRenderingActive == true)
@@ -267,6 +271,7 @@ const Babylon_pong_multi = () => {
                 textEndGame(Interface, true);
               else
                 textEndGame(Interface, false);
+
               start.points_me = 0;
               start.points_opponent = 0;
               points_game.me = 0;

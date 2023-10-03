@@ -3,6 +3,7 @@ version: '3.8'
 volumes:
   pnpm_store:
   postgres_data:
+  avatar: 
 
 networks:
   backend:
@@ -18,8 +19,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - database
-  # not mandatory, but useful to have a database GUI
-  # to access to the gui, go to http://localhost:9000/?pgsql=postgres&username=<user>&db=<db>&ns=public
   adminer:
     image: adminer
     restart: always
@@ -32,19 +31,9 @@ services:
       - postgres
     ports:
       - 9000:8080
-  base-image:
-    image: ft_transcendance_base
-    restart: always
-    build:
-      context: ./
-      dockerfile: ./docker/base.Dockerfile
-    deploy:
-      mode: replicated
-      replicas: 0
   frontend:
     image: ft_transcendance_frontend
     depends_on:
-      - base-image
       - backend
     networks:
       - backend
@@ -68,9 +57,9 @@ services:
       - .env
     environment:
       - BACKEND_PORT=${BACKEND_PORT}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - ENVIRONMENT=production
     depends_on:
-      - base-image
       - postgres
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
@@ -79,6 +68,7 @@ services:
       - database
     volumes:
       - pnpm_store:/root/.pnpm-store
+      - avatar:/public
     build: 
       context: .
       dockerfile: ./docker/nest/Dockerfile

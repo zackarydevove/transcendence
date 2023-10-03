@@ -1,6 +1,5 @@
 "use client"
 import React from 'react';
-import BackButton from '@/components/BackButton';
 import ChooseList from '@components/Friends/ChooseList';
 import FriendChat from '@components/Friends/FriendChat';
 import FriendList from '@components/Friends/FriendList';
@@ -9,17 +8,19 @@ import FriendRequestButton from '@components/Friends/FriendRequestButton';
 import SearchBar from '@components/Friends/SearchBar';
 import MenuButton from '@components/MenuButton';
 import { useStore } from '@/state/store';
+import InvitePopup from '@components/Game/InvitePopup';
+import useInviteContext from '@contexts/InviteContext/useInviteContext';
 
 const Friends: React.FC = () => {
 
     const { friendRequestOpen, activeFriendship } = useStore(state => state.friends);
+	const showInvitePopup = useInviteContext((state) => state.showInvitePopup)
 
 	return (
 		<div className='relative flex items-center justify-center h-screen w-screen bg-gray-900'>
-			{/* Back Button */}
-			<BackButton />
-      {/* Menu Button */}
-      <MenuButton/>
+			{ showInvitePopup && <InvitePopup/> }
+			{/* Menu Button */}
+			<MenuButton/>
 
             {/* Friend request modal */}
             {friendRequestOpen ? <FriendRequest /> : null}

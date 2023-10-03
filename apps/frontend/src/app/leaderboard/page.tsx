@@ -1,10 +1,12 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import BackButton from '@/components/BackButton';
 import MenuButton from '@components/MenuButton';
 import { User, Game } from '@interface/Interface';
 import { getUsers } from '@api/friends';
+import InvitePopup from '@components/Game/InvitePopup';
+import useInviteContext from '@contexts/InviteContext/useInviteContext';
+import { createAvatarUrl } from '@utils/createUrl';
 
 const Leaderboard: React.FC = () => {
   const [search, setSearch] = useState<string>('');
@@ -28,11 +30,12 @@ const Leaderboard: React.FC = () => {
     setSearch(event.target.value);
   }
 
+	const showInvitePopup = useInviteContext((state) => state.showInvitePopup)
+
   return (
     <div className='relative flex flex-col items-center justify-center h-screen w-screen bg-gray-900'>
+			{ showInvitePopup && <InvitePopup/> }
 
-      {/* Back Button */}
-      <BackButton />
       {/* Menu Button */}
       <MenuButton/>
       <div className='flex flex-col items-center justify-center gap-3 h-3/4 w-3/4 bg-white rounded-xl shadow-md p-8'>
@@ -57,7 +60,7 @@ const Leaderboard: React.FC = () => {
             <div key={index} className='flex w-full min-w-[500px] items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-100'>
               {/* PP && Username */}
               <div className='flex gap-4 items-center'>
-                <div className='w-12 h-12 bg-pp bg-cover rounded-full'/>
+                <div className='w-12 h-12 bg-cover rounded-full' style={{ backgroundImage:createAvatarUrl(user.avatar)}} />
                 <p className='text-gray-700'>{user.username}</p>
               </div>
               {/* Points */}

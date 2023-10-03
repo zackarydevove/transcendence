@@ -19,6 +19,8 @@ CREATE TABLE "User" (
     "twoFactorSecret" TEXT,
     "blockedFriends" TEXT[],
     "status" "UserStatus" NOT NULL DEFAULT 'offline',
+    "avatar" TEXT DEFAULT '/public/default.png',
+    "flag_avatar" BOOLEAN NOT NULL DEFAULT false,
     "wins" INTEGER NOT NULL DEFAULT 0,
     "losses" INTEGER NOT NULL DEFAULT 0,
     "points" INTEGER NOT NULL DEFAULT 0,
@@ -118,6 +120,16 @@ CREATE TABLE "Friendship" (
     CONSTRAINT "Friendship_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "FriendRequest" (
+    "id" TEXT NOT NULL,
+    "requesterId" TEXT NOT NULL,
+    "requesteeId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "FriendRequest_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
 
@@ -150,6 +162,9 @@ CREATE UNIQUE INDEX "FriendMessage_id_key" ON "FriendMessage"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Friendship_id_key" ON "Friendship"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FriendRequest_id_key" ON "FriendRequest"("id");
 
 -- AddForeignKey
 ALTER TABLE "Game" ADD CONSTRAINT "Game_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -189,3 +204,9 @@ ALTER TABLE "Friendship" ADD CONSTRAINT "Friendship_user1Id_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Friendship" ADD CONSTRAINT "Friendship_user2Id_fkey" FOREIGN KEY ("user2Id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_requesterId_fkey" FOREIGN KEY ("requesterId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_requesteeId_fkey" FOREIGN KEY ("requesteeId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

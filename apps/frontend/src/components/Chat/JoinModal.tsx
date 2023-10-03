@@ -3,6 +3,7 @@ import { useStore } from '@/state/store';
 import { addMember } from '@api/chat';
 import useUserContext from '@contexts/UserContext/useUserContext';
 import useNotificationContext from '@contexts/NotificationContext/useNotificationContext';
+import socket from '@utils/socket';
 
 const JoinModal: React.FC = () => {
     const [password, setPassword] = useState<string>('');
@@ -11,7 +12,7 @@ const JoinModal: React.FC = () => {
 	const notifcationCtx = useNotificationContext();
 
 	const handleAddMember = async () => {
-		if (clickedGroup) {
+		if (clickedGroup && profile) {
 			if (clickedGroup.type === 'protected') {
 				if (password !== clickedGroup.password) {
 					notifcationCtx.enqueueNotification({
@@ -24,7 +25,7 @@ const JoinModal: React.FC = () => {
 			}
 	
 			if (clickedGroup.type === 'private') {
-				const isUserInvited = clickedGroup.invited?.some(invite => invite.userId === profile?.id);
+				const isUserInvited = clickedGroup.invited?.some(invite => invite.userId === profile.id);
 				if (!isUserInvited) {
 					notifcationCtx.enqueueNotification({
 						message: `You are not invited to this channel.`,
@@ -35,7 +36,7 @@ const JoinModal: React.FC = () => {
 				}
 			}
 
-			const res = await addMember(clickedGroup.id, profile?.id);
+			const res = await addMember(clickedGroup.id, profile.id);
 			if (res.error == 'This user is banned from the chat.') {
 				notifcationCtx.enqueueNotification({
 					message: `You are banned from ${clickedGroup.name} channel.`,
@@ -55,6 +56,7 @@ const JoinModal: React.FC = () => {
 				type: "default"
 			});
 			setShowJoinModal(false);
+			socket.emit('refetchChannel', { channelId: clickedGroup.id, component: "Settings" });
 		}
 	}
 

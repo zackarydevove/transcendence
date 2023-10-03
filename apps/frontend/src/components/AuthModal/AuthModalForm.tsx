@@ -16,7 +16,7 @@ const AuthModalForm: React.FC<AuthModalFormProps> = ({ children, onSubmit, reset
 
 
   return <>
-    <h1 className='text-3xl font-bold mb-8'>{authMode === "login" ? "LOG IN" : "SIGN UP"}</h1>
+    <h1 className='text-3xl font-bold mb-8'>{authMode === "login" ? "LOG IN" : (authMode === "register" ? "SIGN UP": "PASSWORD")}</h1>
     <form className="flex flex-col gap-4" onSubmit={onSubmit}>
       {children}
     </form>
@@ -31,7 +31,7 @@ const AuthModalForm: React.FC<AuthModalFormProps> = ({ children, onSubmit, reset
       <button className='w-12 h-12 rounded-full bg-googlelogo bg-cover hover:bg-gray-300' />
     </div>
 
-    <div className='text-center flex gap-1 max-sm:flex-col'>
+    <div className='text-center flex gap-1 max-:flex-col'>
       <p className='text-gray-500'>{
         authMode === "login"
           ? "Need an account?"
@@ -46,6 +46,14 @@ const AuthModalForm: React.FC<AuthModalFormProps> = ({ children, onSubmit, reset
             : "LOG IN"
         }</a>
     </div>
+
+    {authMode !== "forgotPassword" && <div className="text-center flex gap-1 max-:flex-col">
+      <p className='text-gray-500'>Password forgotten ?</p>
+      <a className="text-indigo-500 hover:underline cursor-pointer" onClick={() => {
+        reset()
+        setAuthMode('forgotPassword')
+      }}>RESET</a>
+    </div>}
   </>
 }
 

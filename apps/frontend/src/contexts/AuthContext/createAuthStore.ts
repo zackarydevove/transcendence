@@ -2,6 +2,9 @@ import type { INotificationContext } from "@contexts/NotificationContext/Notific
 import { createStore } from "zustand";
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { createUrl } from "@utils";
+import { useRouter } from "next/navigation";
+import formatUserName from "@utils/formatUserName";
+import socket from "@utils/socket";
 
 type LoginOptions = {
   username: string; // it can be an email or a username
@@ -24,6 +27,7 @@ interface AuthProps {
   }
   authMode?: 'login' | 'register' | 'forgotPassword';
   twoFactorModal?: boolean;
+  resetPasswordModal?: boolean;
   twoFactorUserId?: string;
   twoFactorRetryCredentials?: LoginOptions;
   authError?: {
@@ -41,6 +45,13 @@ interface AuthActions {
   setAuthMode: (authMode: AuthProps['authMode']) => void;
   login: (options: LoginOptions) => void;
   register: (options: RegisterOptions) => void;
+  forgotPassword: (email: string) => void;
+  forgotCallback: (
+    token: string,
+    password: string,
+    onError?: () => void,
+    onSuccess?: () => void
+  ) => Promise<void>;
   logout: () => void;
   toggleModal: () => void;
   refresh: () => Promise<boolean>;
@@ -54,6 +65,7 @@ type AuthStore = ReturnType<typeof createAuthStore>
 type CreateAuthStoreOptions = {
   initialState?: Partial<AuthProps>;
   notificationContext: INotificationContext
+  router: ReturnType<typeof useRouter>
 }
 
 const createAuthStore = (options: CreateAuthStoreOptions) => {
@@ -61,6 +73,7 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
   const {
     initialState = {},
     notificationContext,
+    router,
   } = options;
 
   return createStore<AuthState>((set, get) => {
@@ -89,6 +102,84 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
       modalOpen: false,
       isLogged: initialState.session ? true : false,
       setAuthMode: (authMode) => set(() => ({ authMode })),
+      forgotPassword: async (email) => {
+        const response = await fetch(createUrl("/auth/forgot"), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        })
+
+        try {
+          const data = await response.json()
+          notificationContext.enqueueNotification({
+            message: data?.message,
+            type: 'success'
+          })
+        } catch (e) {
+          notificationContext.enqueueNotification({
+            message: 'Something went wrong during forgot password process',
+            type: 'error'
+          })
+        }
+        set({
+          modalOpen: false,
+        })
+      },
+      forgotCallback: async (
+        token,
+        password,
+        onError,
+        onSuccess
+      ) => {
+        const response = await fetch(createUrl("/auth/forgot-callback"), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            password,
+          }),
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+          if (response.status === 422) {
+            set({
+              authError: data
+            })
+            return
+          }
+          notificationContext.enqueueNotification({
+            message: data?.message || 'Something went wrong',
+            type: response.status !== 409 ? 'error' : 'warning'
+          })
+
+          if (response.status !== 409) {
+            onError?.()
+            set({
+              authError: undefined,
+              modalOpen: false,
+              resetPasswordModal: false,
+              authMode: 'login',
+            })
+          }
+          return
+        }
+        notificationContext.enqueueNotification({
+          message: 'Your password has been reset, you can now login',
+          type: 'success'
+        })
+        set({
+          authError: undefined,
+          modalOpen: false,
+          resetPasswordModal: false,
+          authMode: 'login',
+        })
+        onSuccess?.()
+      },
       toggleModal: () => set((state) => ({
         modalOpen: !state.modalOpen,
         twoFactorModal: false,
@@ -189,7 +280,6 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
         })
         const data = await response.json()
         if (!response.ok) {
-          console.log(data)
           deleteSession()
           return false
         }
@@ -203,6 +293,19 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
             'Authorization': `Bearer ${get().session?.accessToken}`
           }
         })
+
+        if (!response.ok) {
+          const isRefreshed = await get().refresh()
+          if (!isRefreshed) {
+            notificationContext.enqueueNotification({
+              type: 'warning',
+              message: 'User is not logged in anymore'
+            })
+            deleteSession()
+          }
+          return get().logout()
+        }
+
         if (response.ok) {
           deleteSession()
           notificationContext.enqueueNotification({
@@ -222,66 +325,64 @@ const createAuthStore = (options: CreateAuthStoreOptions) => {
           return
         }
 
-        const { url } = await redirectUriResponse.json()
+        const { url, uniqueId } = await redirectUriResponse.json()
 
-        const popup = window.open(url, 'popup', 'popup=true,width=500,height=500')
+        const popup = window.open(url, 'popup', 'popup=true,width=500,height=700')
 
-        // add event on popup when url change
+        let timer = setInterval(function () {
+          if (popup?.closed) {
+            notificationContext.enqueueNotification({
+              message: 'Oauth 42 was abored',
+              type: 'warning'
+            })
+            socket.off('oauthComplete:' + uniqueId)
+            socket.off('oauthError:' + uniqueId)
+            clearTimeout(timer)
+          }
+        }, 200);
 
-        const timer = setInterval(async () => {
+        socket.on('oauthError:' + uniqueId, (e) => {
+          socket.off('oauthComplete:' + uniqueId)
+          socket.off('oauthError:' + uniqueId)
+          clearTimeout(timer)
+          notificationContext.enqueueNotification({
+            message: 'Something went wrong during OAuth process',
+            type: 'error'
+          })
+          popup?.close()
+        })
+
+        socket.on('oauthComplete:' + uniqueId, async (e) => {
+          const { accessToken, refreshToken, oauthToken } = e || {}
+          createSession({
+            accessToken,
+            refreshToken,
+            oauthToken,
+          })
+          notificationContext.enqueueNotification({
+            message: 'You are now logged in with 42',
+            type: 'success'
+          })
+          get().toggleModal()
           try {
-            if (popup?.closed || !popup?.location.href) {
-              clearInterval(timer)
-              notificationContext.enqueueNotification({
-                message: 'Could not complete OAuth process',
-                type: 'error'
-              })
-              return
-            }
-
-            const popupUrl = new URL(popup.location.href)
-            const appUrl = new URL(window.location.href)
-            if (popupUrl.origin !== appUrl.origin) {
-              return
-            }
-
-            const accessToken = popupUrl.searchParams.get('accessToken')
-            const refreshToken = popupUrl.searchParams.get('refreshToken')
-            const oauthToken = popupUrl.searchParams.get('oauthToken')
-            const error = popupUrl.searchParams.get('error')
-
-            if (!accessToken || !refreshToken || !oauthToken || error) {
-              notificationContext.enqueueNotification({
-                message: 'Something went wrong during OAuth process',
-                type: 'error'
-              })
-              clearInterval(timer)
-              popup.close()
-              return
-            }
-
-            createSession({
-              accessToken,
-              refreshToken,
-              oauthToken,
+            const user = await fetch(createUrl('/user/profile'), {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`
+              }
             })
-            notificationContext.enqueueNotification({
-              message: 'You are now logged in with 42',
-              type: 'success'
-            })
-            get().toggleModal()
-            clearInterval(timer)
-            popup.close()
+            router.push('/profile/' + formatUserName((await user.json()).username))
           } catch (e) {
-            console.error(e)
             notificationContext.enqueueNotification({
-              message: 'Something went wrong during OAuth process',
+              message: 'Connected but could not fetch user profile',
               type: 'error'
             })
-            clearInterval(timer)
-            popup?.close()
           }
-        }, 400)
+          socket.off('oauthComplete:' + uniqueId)
+          socket.off('oauthError:' + uniqueId)
+          clearTimeout(timer)
+          popup?.close()
+        })
 
         if (popup?.focus) {
           popup.focus()

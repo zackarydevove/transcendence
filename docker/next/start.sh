@@ -6,6 +6,5 @@ while ! curl "$SERVER_BACKEND_URL" &> /dev/null; do
 done
 
 # build backend and ignore scripts build command
-./node_modules/turbo/bin/turbo build
-
+pnpm --filter @ft/frontend run build
 pnpm --filter @ft/frontend run start

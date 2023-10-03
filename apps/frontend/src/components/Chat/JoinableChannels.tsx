@@ -14,13 +14,14 @@ const JoinableChannels: React.FC = () => {
 	const profile = useUserContext((state) => state.profile);
 
     useEffect(() => {
+		if (!profile) return;
         const fetchChats = async () => {
-            const fetchedGroups = await getAllChats(profile?.id);
+            const fetchedGroups = await getAllChats(profile.id);
             setGroups(fetchedGroups);
         }
 
         fetchChats();
-    }, []);
+    }, [profile]);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);

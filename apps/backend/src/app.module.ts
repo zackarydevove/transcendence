@@ -9,8 +9,10 @@ import UserModule from './user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import FortyTwoModule from './fortytwo/fortytwo.module';
 import GameModule from './game/game.module';
+import { AppGateway } from './app.gateway';
 
 @Module({
+  providers: [AppGateway],
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
@@ -19,12 +21,12 @@ import GameModule from './game/game.module';
     CacheModule.register({
       isGlobal: true,
     }),
+    SocketModule,
     AuthModule,
     FortyTwoModule,
     UserModule,
-	  FriendsModule,
+    FriendsModule,
     ChatModule,
-    SocketModule,
     GameModule,
   ],
 })

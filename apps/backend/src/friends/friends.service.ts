@@ -3,7 +3,7 @@ import DatabaseService from "src/database/database.service";
 
 @Injectable()
 export default class FriendsService {
-	constructor(private databaseService: DatabaseService) {}
+	constructor(private databaseService: DatabaseService) { }
 
 	async getFriends(userId: string) {
 		const user = await this.databaseService.user.findUnique({
@@ -16,7 +16,8 @@ export default class FriendsService {
 								id: true,
 								username: true,
 								email: true,
-								status: true
+								status: true,
+								avatar: true
 							}
 						}
 					}
@@ -28,26 +29,37 @@ export default class FriendsService {
 								id: true,
 								username: true,
 								email: true,
-								status: true
+								status: true,
+								avatar: true
 							}
 						}
 					}
 				}
 			}
 		});
-	
+
+		if (!user)
+			return { ok: false, msg: "User not found" };
+
 		const initiatedFriends = user?.initiatedFriendships.map(friendship => friendship.user2) || [];
 		const acceptedFriends = user?.acceptedFriendships.map(friendship => friendship.user1) || [];
+
+		const allFriends = [...initiatedFriends, ...acceptedFriends];
+
+		if (allFriends.length === 0) {
+			return { ok: false, msg: "User has no friend" };
+		}
 	
-		return [...initiatedFriends, ...acceptedFriends];
+		
+		return allFriends;
 	}
 
 	async addFriend(userId: string, friendId: string) {
 		// Fetch the friend's blocked users
 		const friend = await this.databaseService.user.findUnique({
 			where: { id: friendId },
-				select: {
-					blockedFriends: true
+			select: {
+				blockedFriends: true
 			}
 		});
 
@@ -92,28 +104,32 @@ export default class FriendsService {
 			}
 		});
 	}
-	
+
 	async getUser(username: string) {
-		const user = await this.databaseService.user.findUnique({
-			where: {
-				username: username
+		const removeAccents = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+		const formatUserName = (username: string) => {
+			return removeAccents(username.toLowerCase().replace(/[ ']/g, '-'))
+		}
+		const users = await this.databaseService.user.findMany();
+		for (const user of users) {
+			if (formatUserName(user.username) === formatUserName(username)) {
+				return user;
 			}
-		});
-	
-		return user;
+		}
+		return null;
 	}
 
 	async getUsers() {
-        return this.databaseService.user.findMany();
-    }
+		return this.databaseService.user.findMany();
+	}
 
 	async deleteFriend(userId: string, friendId: string) {
 		const friendship = await this.databaseService.friendship.findFirst({
 			where: {
-			OR: [
-				{ user1Id: userId, user2Id: friendId },
-				{ user1Id: friendId, user2Id: userId }
-			]
+				OR: [
+					{ user1Id: userId, user2Id: friendId },
+					{ user1Id: friendId, user2Id: userId }
+				]
 			},
 			select: {
 				id: true
@@ -121,7 +137,7 @@ export default class FriendsService {
 		});
 
 		if (!friendship) {
-			return { error: "Friendship not found"};
+			return { error: "Friendship not found" };
 		}
 
 		await this.databaseService.friendMessage.deleteMany({
@@ -154,7 +170,7 @@ export default class FriendsService {
 		const user = await this.databaseService.user.findUnique({
 			where: { id: userId }
 		});
-		const updatedBlockedUsers = (user?.blockedFriends || []).filter(id => id !== blockedId); 
+		const updatedBlockedUsers = (user?.blockedFriends || []).filter(id => id !== blockedId);
 
 		return this.databaseService.user.update({
 			where: { id: userId },
@@ -173,7 +189,7 @@ export default class FriendsService {
 				blockedFriends: true
 			}
 		});
-		
+
 		return user?.blockedFriends || [];
 	}
 
@@ -186,7 +202,7 @@ export default class FriendsService {
 		if (!exist) {
 			return { ok: false };
 		}
-	
+
 		return this.databaseService.friendMessage.create({
 			data: {
 				content: content,
@@ -226,7 +242,7 @@ export default class FriendsService {
 				]
 			}
 		});
-	
+
 		return friendship ? friendship : { exist: false };
 	}
 
@@ -236,17 +252,17 @@ export default class FriendsService {
 				id: friendshipId
 			}
 		});
-	
+
 		return friendship ? { exist: true } : { exist: false };
 	}
 
 	async updateUserStatus(userId: string, status: 'online' | 'offline' | 'ingame') {
 		const user = await this.databaseService.user.update({
-				where: { id: userId },
-				data: { status },
-			});
+			where: { id: userId },
+			data: { status },
+		});
 		if (!user)
-			return { error: 'Error updating user status:', ok: false};
+			return { error: 'Error updating user status:', ok: false };
 		return { user, ok: true };
 	}
 
@@ -254,7 +270,7 @@ export default class FriendsService {
 		const request = await this.databaseService.friendRequest.findUnique({
 			where: { id: friendRequestId }
 		});
-	
+
 		if (request && request.requesteeId === userId) {
 			// Create a new friendship
 			await this.databaseService.friendship.create({
@@ -263,32 +279,32 @@ export default class FriendsService {
 					user2Id: request.requesteeId
 				}
 			});
-	
+
 			// Delete the friend request
 			await this.databaseService.friendRequest.delete({
 				where: { id: friendRequestId }
 			});
-	
+
 			return { ok: true };
 		}
-	
+
 		return { ok: false };
 	}
-	
+
 	async declineFriendRequest(userId: string, friendRequestId: string) {
 		const request = await this.databaseService.friendRequest.findUnique({
 			where: { id: friendRequestId }
 		});
-	
+
 		if (request && request.requesteeId === userId) {
 			// Delete the friend request
 			await this.databaseService.friendRequest.delete({
 				where: { id: friendRequestId }
 			});
-	
+
 			return { ok: true };
 		}
-	
+
 		return { ok: false };
 	}
 
@@ -302,11 +318,29 @@ export default class FriendsService {
 					select: {
 						id: true,
 						username: true,
+						avatar: true
 					}
 				}
 			}
 		});
-	
+
 		return pendingRequests;
 	}
+
+	async areTheyFriends(userId1: string, userId2: string) {
+		// Check if there is an existing friendship between the two users
+		const existingFriendship = await this.databaseService.friendship.findFirst({
+			where: {
+				OR: [
+					{ user1Id: userId1, user2Id: userId2 },
+					{ user1Id: userId2, user2Id: userId1 }
+				]
+			}
+		});
+	
+		// Return true if they are friends, false otherwise
+		return !!existingFriendship;
+	}
 }
+
+

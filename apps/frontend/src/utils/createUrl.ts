@@ -13,4 +13,8 @@ const createUrl = (path?: string) => {
   return path.startsWith('/') ? `${baseUrl}${path}` : `${baseUrl}/${path}`
 }
 
+export const createAvatarUrl = (path?: string) => {
+return path ? (path.includes('https://') ? `url(${path})` : `url(${createUrl(path)})` ) : `url(${createUrl('public/default.png')})`
+}
+
 export default createUrl

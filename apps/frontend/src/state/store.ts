@@ -37,38 +37,42 @@ type Store = {
     setShowJoinModal: (value: boolean) => void,
     showAdminModal: boolean,
     setShowAdminModal: (value: boolean) => void,
-    clickedGroup:  Chat | null,
+    clickedGroup: Chat | null,
     setClickedGroup: (value: Chat | null) => void,
-	activeChannel: Chat | null,
-	setActiveChannel: (activeChannel: Chat | null) => void,
-	myGroups: Chat[],
-	setMyGroups: (activeChannel: Chat[]) => void,
-	chatMembers: Member[] | null,
-	setChatMembers: (chatMembers: Member[] | null) => void,
-	targetMember: Member | null,
-	setTargetMember: (targetMember: Member | null) => void,
-	messages: Message[],
-	setMessages: (value: ((prev: Message[]) => Message[]) | Message[]) => void;
+    activeChannel: Chat | null,
+    setActiveChannel: (activeChannel: Chat | null) => void,
+    myGroups: Chat[],
+    setMyGroups: (activeChannel: Chat[]) => void,
+    chatMembers: Member[] | null,
+    setChatMembers: (chatMembers: Member[] | null) => void,
+    targetMember: Member | null,
+    setTargetMember: (targetMember: Member | null) => void,
+    messages: Message[],
+    setMessages: (value: ((prev: Message[]) => Message[]) | Message[]) => void;
   },
   friends: {
     search: string,
+    activeChatId: string | null,
+    setActiveChatId: (activeChatId: string | null) => void,
     setSearch: (search: string) => void,
     dropdownOpen: number,
     setDropdownOpen: (dropdownOpen: number) => void,
     friendList: boolean,
     setFriendList: (friendList: boolean) => void,
-	friends: User[],
-	setFriends: (friends: User[]) => void,
-	activeFriendship: Friendship | null,
-	setActiveFriendship: (activeFriendship: Friendship | null) => void,
-	messages: FriendMessage[]
-	setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => void;
+    friends: User[],
+    setFriends: (friends: User[]) => void,
+    activeFriendship: Friendship | null,
+    setActiveFriendship: (activeFriendship: Friendship | null) => void,
+    messages: FriendMessage[]
+    setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => void;
     friendRequestOpen: boolean,
     setFriendRequestOpen: (value: boolean) => void,
   },
   profile: {
     isHovered: boolean,
     setIsHovered: (isHovered: boolean) => void,
+    avatarURL: string,
+    setAvatar: (avatarURL: string) => void,
   },
 };
 
@@ -82,7 +86,7 @@ export const useStore = create<Store>((set) => ({
     setSettings: (settings: boolean) => set((state) => ({ chat: { ...state.chat, settings } })),
     userChannels: true,
     setUserChannels: (userChannels: boolean) => set((state) => ({ chat: { ...state.chat, userChannels } })),
-	channelType: ChatType.public,
+    channelType: ChatType.public,
     setChannelType: (channelType: ChatType) => set((state) => ({ chat: { ...state.chat, channelType } })),
     channelName: '',
     setChannelName: (channelName: string) => set((state) => ({ chat: { ...state.chat, channelName } })),
@@ -108,49 +112,54 @@ export const useStore = create<Store>((set) => ({
     setShowJoinModal: (showJoinModal: boolean) => set((state) => ({ chat: { ...state.chat, showJoinModal } })),
     showAdminModal: false,
     setShowAdminModal: (showAdminModal: boolean) => set((state) => ({ chat: { ...state.chat, showAdminModal } })),
-	clickedGroup: null,
-	setClickedGroup: (clickedGroup: Chat | null) => set((state) => ({ chat: { ...state.chat, clickedGroup } })),
-	activeChannel: null,
-	setActiveChannel: (activeChannel: Chat | null) => set((state) => ({ chat: { ...state.chat, activeChannel } })),
-	myGroups: [],
-	setMyGroups: (myGroups: Chat[]) => set((state) => ({ chat: { ...state.chat, myGroups } })),
-	chatMembers: null,
-	setChatMembers: (chatMembers: Member[] | null) => set((state) => ({ chat: { ...state.chat, chatMembers } })),
-	targetMember: null,
-	setTargetMember: (targetMember: Member | null) => set((state) => ({ chat: { ...state.chat, targetMember } })),
-	messages: [],
-	setMessages: (value: ((prev: Message[]) => Message[]) | Message[]) => {
-		if (typeof value === "function") {
-		  set((state) => ({ chat: { ...state.chat, messages: value(state.chat.messages) } }));
-		} else {
-		  set((state) => ({ chat: { ...state.chat, messages: value } }));
-		}
-	},
+    clickedGroup: null,
+    setClickedGroup: (clickedGroup: Chat | null) => set((state) => ({ chat: { ...state.chat, clickedGroup } })),
+    activeChannel: null,
+    setActiveChannel: (activeChannel: Chat | null) => set((state) => ({ chat: { ...state.chat, activeChannel } })),
+    myGroups: [],
+    setMyGroups: (myGroups: Chat[]) => set((state) => ({ chat: { ...state.chat, myGroups } })),
+    chatMembers: null,
+    setChatMembers: (chatMembers: Member[] | null) => set((state) => ({ chat: { ...state.chat, chatMembers } })),
+    targetMember: null,
+    setTargetMember: (targetMember: Member | null) => set((state) => ({ chat: { ...state.chat, targetMember } })),
+    messages: [],
+    setMessages: (value: ((prev: Message[]) => Message[]) | Message[]) => {
+      if (typeof value === "function") {
+        set((state) => ({ chat: { ...state.chat, messages: value(state.chat.messages) } }));
+      } else {
+        set((state) => ({ chat: { ...state.chat, messages: value } }));
+      }
+    },
   },
   friends: {
     search: "",
+    activeChatId: null,
+    setActiveChatId: (activeChatId: string | null) => set((state) => ({ friends: { ...state.friends, activeChatId } })),
     setSearch: (search: string) => set((state) => ({ friends: { ...state.friends, search } })),
     dropdownOpen: -1,
-    setDropdownOpen: (dropdownOpen: number)=> set((state)  => ({ friends: { ...state.friends, dropdownOpen}})),
+    setDropdownOpen: (dropdownOpen: number) => set((state) => ({ friends: { ...state.friends, dropdownOpen } })),
     friendList: true,
-    setFriendList: (friendList: boolean) => set((state)  => ({ friends: { ...state.friends, friendList } })),
-	friends: [],
-	setFriends: (friends: User[]) => set((state) => ({ friends: { ...state.friends, friends } })),
-	activeFriendship: null,
-	setActiveFriendship: (activeFriendship: Friendship | null) => set((state) => ({ friends: { ...state.friends, activeFriendship } })),
-	messages: [],
-	setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => {
-		if (typeof value === "function") {
-		  set((state) => ({ friends: { ...state.friends, messages: value(state.friends.messages) } }));
-		} else {
-		  set((state) => ({ friends: { ...state.friends, messages: value } }));
-		}
-	},
+    setFriendList: (friendList: boolean) => set((state) => ({ friends: { ...state.friends, friendList } })),
+    friends: [],
+    setFriends: (friends: User[]) => set((state) => ({ friends: { ...state.friends, friends } })),
+    activeFriendship: null,
+    setActiveFriendship: (activeFriendship: Friendship | null) => set((state) => ({ friends: { ...state.friends, activeFriendship } })),
+    messages: [],
+    setMessages: (value: ((prev: FriendMessage[]) => FriendMessage[]) | FriendMessage[]) => {
+      if (typeof value === "function") {
+        set((state) => ({ friends: { ...state.friends, messages: value(state.friends.messages) } }));
+      } else {
+        set((state) => ({ friends: { ...state.friends, messages: value } }));
+      }
+    },
     friendRequestOpen: false,
     setFriendRequestOpen: (friendRequestOpen: boolean) => set((state) => ({ friends: { ...state.friends, friendRequestOpen } })),
   },
   profile: {
     isHovered: false,
     setIsHovered: (isHovered: boolean) => set((state) => ({ profile: { ...state.profile, isHovered } })),
+    // TO DO : à changer : inutile en l'état
+    avatarURL: "/public/default.png",
+    setAvatar: (avatarURL: string) => set((state) => ({ profile: { ...state.profile, avatarURL } })),
   },
 }));

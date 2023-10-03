@@ -1,6 +1,5 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import BackButton from '@/components/BackButton';
 import Settings from '@/components/Chat/Settings';
 import CreateChat from '@/components/Chat/CreateChat';
 import Discussion from '@/components/Chat/Discussion';
@@ -18,6 +17,8 @@ import JoinModal from '@components/Chat/JoinModal';
 import AdminModal from '@components/Chat/AdminModal';
 import { useStore } from '@/state/store';
 import MenuButton from '@components/MenuButton';
+import InvitePopup from '@components/Game/InvitePopup';
+import useInviteContext from '@contexts/InviteContext/useInviteContext';
 
 
 const Chat: React.FC = () => {
@@ -38,11 +39,13 @@ const Chat: React.FC = () => {
         settings
     } = useStore(state => state.chat);
 
+	const showInvitePopup = useInviteContext((state) => state.showInvitePopup)
+
+
     return (
         <div className='relative flex items-center justify-center h-screen w-screen bg-gray-900'>
+			{ showInvitePopup && <InvitePopup/> }
 
-            {/* Back Button */}
-            <BackButton />
             {/* Menu Button */}
             <MenuButton/>
             {/* Create channel button */}
@@ -78,7 +81,7 @@ const Chat: React.FC = () => {
                     </div>
                 </div>
                 {/* Right : Chat */}
-				<div className={`h-full ${activeChannel || ? '' : 'max-md:hidden'}`}>
+				<div className={`h-full ${activeChannel ? '' : 'max-md:hidden'}`}>
                 	{ settings ? <Settings/> : <Discussion/> }
 				</div>
             </div>

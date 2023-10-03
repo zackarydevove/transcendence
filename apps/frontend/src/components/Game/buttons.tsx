@@ -29,6 +29,8 @@ export function setDiffilcultyExpert(difficulties, elements, scene) {
     difficulties.bot_speed = 0.09;
     difficulties.type = 3;
   
+    if (elements.started > -1)
+    {
     // **** COLUMN ***
     const material_column = new BABYLON.StandardMaterial("material_column", scene);
     material_column.diffuseTexture = new BABYLON.Texture("synthetic_wood.jpeg", scene);
@@ -56,8 +58,7 @@ export function setDiffilcultyExpert(difficulties, elements, scene) {
     elements.column3 = elements.column.clone();
     elements.column3.position.x = -2.5;
     
-    if (elements.started > -1)
-    {
+    
       const animation = new BABYLON.Animation(
       'columnAnimation',
       'position.y',
@@ -85,7 +86,7 @@ export function setDiffilcultyExpert(difficulties, elements, scene) {
       scene.addMesh(elements.column1);
       scene.addMesh(elements.column2);
       scene.addMesh(elements.column3);
-    }
+    
       const ballbounce = new BABYLON.Sound("ball", "ball.wav", scene);
       setTimeout(() => {
         elements.column.physicsImpostor = new BABYLON.PhysicsImpostor(elements.column, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0, restitution: 1}, scene);
@@ -105,7 +106,7 @@ export function setDiffilcultyExpert(difficulties, elements, scene) {
           ballbounce.play();
         });
       }, 1500);
-     
+    }
   }
 
 const message_count = new GUI.TextBlock();

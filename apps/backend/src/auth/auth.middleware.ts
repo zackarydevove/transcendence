@@ -31,9 +31,9 @@ export default class AuthMiddleware implements NestMiddleware {
         HttpStatus.UNAUTHORIZED
       )
     }
-
     req.body.userId = payload.id // Add userId to req.body if token is valid
     req.body.accessToken = token // Add accessToken to req.body if token is valid
+    
     next();
   }
 } 

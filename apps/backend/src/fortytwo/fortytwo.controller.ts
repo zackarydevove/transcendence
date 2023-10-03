@@ -3,7 +3,9 @@ import FortyTwoService from "./fortytwo.service";
 import AuthService from "src/auth/auth.service";
 import { Response } from "express";
 import TypedError from "src/errors/TypedError";
+import { SocketService } from "src/socket/socket.service";
 
+import { v4 as uuid } from 'uuid'
 
 @Controller('42')
 export default class FortyTwoController {
@@ -11,12 +13,17 @@ export default class FortyTwoController {
   constructor(
     private fortyTwoService: FortyTwoService,
     private authService: AuthService,
+    private socketService: SocketService
   ) { }
 
   @Get('oauth')
   async oauth() {
+
+    const uniqueId = uuid()
+
     return {
-      url: this.fortyTwoService.createAuthorizationUrl()
+      url: this.fortyTwoService.createAuthorizationUrl(uniqueId),
+      uniqueId,
     }
   }
 
@@ -24,9 +31,11 @@ export default class FortyTwoController {
   @Get('oauth/callback')
   async oauthCallback(
     @Req() req: Request,
+    @Query() query: Record<string, any>,
     @Res() res: Response,
-    @Query("code") code: string
   ) {
+    const { code, state } = query
+
     // @ts-ignore
     const redirectUrl = process.env.NEXT_PUBLIC_FRONT_URL || req.headers['referer'] as string || null
     if (!redirectUrl) {
@@ -34,15 +43,21 @@ export default class FortyTwoController {
     }
 
     try {
-      const token = await this.fortyTwoService.getToken(code)
+      const token = await this.fortyTwoService.getToken(code, state)
       const user = await this.fortyTwoService.findOrCreateUser(token)
       const session = await this.authService.createSession(user.id)
 
-      res.redirect(process.env.NEXT_PUBLIC_FRONT_URL + "?accessToken=" + session.accessToken + "&refreshToken=" + session.refreshToken + "&oauthToken=" + token.access_token)
+      this.socketService.socket.emit('oauthComplete:' + state, {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        oauthToken: token.access_token
+      })
     } catch (error) {
       console.log(error?.message || 'Something went wrong with the 42 oauth callback')
-      res.redirect(redirectUrl + "?error=Something went wrong with the 42 oauth callback")
+      this.socketService.socket.emit('oauthError:' + state)
     }
+
+    return true
   }
 
   @Get('me')

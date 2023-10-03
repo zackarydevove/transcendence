@@ -1,13 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import DatabaseService from "src/database/database.service";
+import UserService from "src/user/user.service";
 
 @Injectable()
 export default class GameService {
 
   public user : Map<string, { Socket: Socket, userId: string, name: string, opponent_socket_id: string, 
-    opponent_id: string, points_me: number, points_opponent: number, game_id: string}> = new Map();
-	constructor(private databaseService: DatabaseService) {}
+    opponent_id: string, points_me: number, points_opponent: number, game_id: string, invite_mode: boolean}> = new Map();
+	constructor(private databaseService: DatabaseService, private UserService: UserService) {}
 
 	// Create a new game
 	async createGame(player1Id: string, player2Id: string) {
@@ -135,6 +136,7 @@ export default class GameService {
 				}
 			}
 		});
+	
 		return user;
 	}
 
@@ -150,14 +152,13 @@ export default class GameService {
 		return game;
 	}
 
-  // find opponent for the game and set data
+	// find opponent for the game and set data
   async handleUsername(client: Socket, payload: {username: string, userId: string, opponent_id: string}) {
-    console.log(`Reçu : ${payload.username}`);
-    console.log(`opponent id : ${payload.opponent_id}`);
+	await this.UserService.changeUserStatus(payload.userId, "ingame");
     if (payload.opponent_id != undefined)
-       this.user.set(client.id, { Socket: client, userId: payload.userId, name: payload.username, opponent_socket_id: "", opponent_id: payload.opponent_id, points_me: 0, points_opponent: 0, game_id: ""});
+       this.user.set(client.id, { Socket: client, userId: payload.userId, name: payload.username, opponent_socket_id: "", opponent_id: payload.opponent_id, points_me: 0, points_opponent: 0, game_id: "", invite_mode: true});
     else
-       this.user.set(client.id, { Socket: client, userId: payload.userId, name: payload.username, opponent_socket_id: "", opponent_id: "", points_me: 0, points_opponent: 0, game_id: ""});
+       this.user.set(client.id, { Socket: client, userId: payload.userId, name: payload.username, opponent_socket_id: "", opponent_id: "", points_me: 0, points_opponent: 0, game_id: "", invite_mode: false});
     let currentSize = this.user.size;
     let Client;
     let opponentClient;
@@ -167,7 +168,7 @@ export default class GameService {
         opponentClient = this.user.get(EntryKey);
         if (opponentClient != undefined && opponentClient.name == payload.username)
            Client = opponentClient;
-        if (opponentClient != undefined && opponentClient.opponent_socket_id == "" && opponentClient.name != payload.username && ((payload.opponent_id == undefined && opponentClient.opponent_id == "") || (payload.opponent_id == opponentClient.userId && opponentClient.opponent_id == payload.userId)))
+        if (opponentClient != undefined && opponentClient.opponent_socket_id == "" && opponentClient.name != payload.username && ((payload.opponent_id == undefined && opponentClient.opponent_id == "" && !opponentClient.invite_mode) || (payload.opponent_id == opponentClient.userId && opponentClient.opponent_id == payload.userId)))
         {
            opponentClient.opponent_socket_id = client.id;
            opponentClient.opponent_id = payload.userId;
@@ -195,6 +196,7 @@ export default class GameService {
         if (value.Socket === client) {
             value.points_me = payload.points_me;
             value.points_opponent = payload.points_opponent;
+			await this.UserService.changeUserStatus(value.userId, "ingame");
             if (payload.win === true)
             {
                this.updateGameScore(value.game_id, value.userId);
@@ -208,6 +210,7 @@ export default class GameService {
             for (const [key, valu] of this.user.entries()) {
                 if (valu.Socket.id === value.opponent_socket_id)
                 {
+				await this.UserService.changeUserStatus(valu.userId, "ingame");
                    valu.points_me = payload.points_opponent;
                    valu.points_opponent = payload.points_me;
                    if (payload.points_me >= 2 || payload.points_opponent >= 2)

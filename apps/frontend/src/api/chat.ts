@@ -5,7 +5,7 @@ import { ChatType } from "@interface/Interface";
 const BASE_URL = createUrl();  // adjust the default URL accordingly
 
 // Creates a new chat with the given type, name, and (optional) password.
-export async function createChat(type: ChatType, name: string, userId: string, password?: string,) {
+export async function createChat(type: ChatType, name: string, userId: string, password?: string) {
 	const response = await fetch(`${BASE_URL}/chat/create`, {
 		method: 'POST',
 		headers: {

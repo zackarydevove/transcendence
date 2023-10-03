@@ -10,7 +10,6 @@ export default class FortyTwoService {
 
   private _clientId = process.env.FORTYTWO_CLIENT_ID
   private _clientSecret = process.env.FORTYTWO_CLIENT_SECRET
-  private _state = "a_very_long_random_string_witchmust_be_unguessable"
 
   constructor(
     private userService: UserService,
@@ -40,7 +39,7 @@ export default class FortyTwoService {
     }
   }
 
-  createAuthorizationUrl() {
+  createAuthorizationUrl(state: string) {
     const baseUrl = "https://api.intra.42.fr/oauth/authorize"
     const redirectUrl = (process.env.NEXT_PUBLIC_CLIENT_BACKEND_URL || "http://localhost:8080") + "/42/oauth/callback"
     const redirectUri = encodeURIComponent(redirectUrl)
@@ -52,12 +51,12 @@ export default class FortyTwoService {
       `?client_id=${this._clientId}`,
       `&redirect_uri=${redirectUri}`,
       `&scope=${scope}`,
-      `&state=${this._state}`,
+      `&state=${state}`,
       `&response_type=${responseType}`
     ].join("")
   }
 
-  async getToken(code: string) {
+  async getToken(code: string, state: string) {
     try {
       const baseUrl = "https://api.intra.42.fr/oauth/token"
       const grantType = "authorization_code"
@@ -66,7 +65,7 @@ export default class FortyTwoService {
       const body = {
         client_id: this._clientId,
         client_secret: this._clientSecret,
-        state: this._state,
+        state: state,
         grant_type: grantType,
         redirect_uri: redirectUri,
         code,
@@ -93,6 +92,8 @@ export default class FortyTwoService {
         provider: "42",
         email: fortyTwoUser.email,
         username: fortyTwoUser.login,
+        avatar: fortyTwoUser.image.versions.medium,
+        flag_avatar: true,
       })
     }
     return user

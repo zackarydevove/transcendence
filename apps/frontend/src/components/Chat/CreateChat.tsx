@@ -15,6 +15,8 @@ const CreateChat: React.FC = () => {
 		setChannelName,
         password, 
         setPassword,
+		myGroups,
+		setMyGroups,
     } = useStore(state => state.chat);
 
 	const profile = useUserContext((state) => state.profile);
@@ -32,15 +34,26 @@ const CreateChat: React.FC = () => {
         setChannelName(event.target.value);
     }
 
-
+	
 	const handleCreateChat = async (type: ChatType, name: string, password?: string) => {
+		 // If name only have white space or is empty
+		if (!name || !name.trim()) {
+			notifcationCtx.enqueueNotification({
+				message: `The name of your channel cannot be empty.`,
+				type: "default"
+			});
+			return ;
+		}
+		if (!profile) return;
             try {
-                const response = await createChat(type, name, profile?.id, password);
+                const response = await createChat(type, name, profile.id, password);
 				notifcationCtx.enqueueNotification({
 					message: `Channel ${response.name} has been created.`,
 					type: "default"
 				});
 				setCreateOpen(false);
+				const updatedGroups = [...myGroups, response];
+				setMyGroups(updatedGroups);
             } catch (error) {
 				notifcationCtx.enqueueNotification({
 					message: `An error has occured.`,

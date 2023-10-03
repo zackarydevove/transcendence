@@ -2,6 +2,7 @@
 
 import * as BABYLON from '@babylonjs/core';
 import {createGUI} from './interface'
+import { setDiffilcultyExpert } from './buttons';
 
 export async function animation_intro(elements, scene, Interface, difficulties, points_game, canvas, player_name)
 {
@@ -70,5 +71,10 @@ export async function animation_intro(elements, scene, Interface, difficulties, 
     myText4.dispose();
     boxstart.dispose();
     createGUI(elements, Interface, scene, difficulties, points_game, player_name);
+    if (difficulties.type === 3)
+    {
+      elements.started = 0;
+      setDiffilcultyExpert(difficulties, elements, scene);
+    }
 });
 }

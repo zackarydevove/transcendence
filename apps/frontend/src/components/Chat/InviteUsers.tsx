@@ -5,6 +5,7 @@ import { User, Invite, ChatType } from '@interface/Interface';
 import useNotificationContext from "@contexts/NotificationContext/useNotificationContext";
 import useUserContext from '@contexts/UserContext/useUserContext';
 import { banUser, inviteUserToChat, getBannedUsers, getInvitedUsers, unbanUser, uninviteUserFromChat  } from '@api/chat';
+import { createAvatarUrl } from '@utils/createUrl';
 
 const InviteUsers: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -50,10 +51,11 @@ const InviteUsers: React.FC = () => {
 		}
 
         async function fetchList() {
+			if (!profile) return;
             try {
                 const fetchedData = await getUsers();
                 if (fetchedData && Array.isArray(fetchedData) && fetchedData.length > 0) {
-                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile?.username);
+                    const filteredData = fetchedData.filter(userItem => userItem.username !== profile.username);
                     setUsers(filteredData);
                 } else {
                     setUsers([]);
@@ -86,11 +88,11 @@ const InviteUsers: React.FC = () => {
 				})
 				return ;
 			}
-			if (activeChannel?.id && target) {
+			if (activeChannel?.id && target && profile) {
 				const bool = invited.some(inv => inv.userId == target.id) ? true : false;
 				const res = bool
-					? await uninviteUserFromChat(activeChannel.id, profile?.id, target.id)
-					: await inviteUserToChat(activeChannel.id, profile?.id, target.id);
+					? await uninviteUserFromChat(activeChannel.id, profile.id, target.id)
+					: await inviteUserToChat(activeChannel.id, profile.id, target.id);
 				if (res.ok) {
 					if (bool) {
 						notifcationCtx.enqueueNotification({
@@ -107,11 +109,11 @@ const InviteUsers: React.FC = () => {
 				}
 			}
 		} else if (action === "ban") {
-			if (activeChannel && activeChannel.id && target) {
+			if (activeChannel && activeChannel.id && target && profile) {
 				const bool = banned.some(ban => ban == target.id) ? true : false;
 				const res = bool
-					? await unbanUser(activeChannel.id, profile?.id, target.id)
-					: await banUser(activeChannel.id, profile?.id, target.id)
+					? await unbanUser(activeChannel.id, profile.id, target.id)
+					: await banUser(activeChannel.id, profile.id, target.id)
 				if (res.error == "User is not a member of the chat") {
 					notifcationCtx.enqueueNotification({
 						message: `${target.username} is not a member of ${activeChannel.name}.`,
@@ -174,7 +176,7 @@ const InviteUsers: React.FC = () => {
                     <div key={user.id} className='flex justify-between items-center mb-3'>
                         {/* Profile Picture and Username */}
                         <div className='flex items-center'>
-                            <div className='h-12 w-12 bg-pp bg-contain rounded-full mr-4'></div>
+                            <div className='h-12 w-12 bg-cover rounded-full mr-4' style={{ backgroundImage:createAvatarUrl(user.avatar)}}></div>
                             <p className='text-gray-700'>{user.username}</p>
                         </div>
 
