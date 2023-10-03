@@ -1,9 +1,6 @@
 # To start the project
 
 - clone the repo
-- run `pnpm i`
-- create a .env file in the root directory based on .env.example
-- *if you want to develop locally, create .env.development file based on .env.example also*
+- run `docker-compose --build up`
 
-- run `pnpm dev` to start the development server, backend and frontend
-- or `pnpm run up` to deploy the project to docker in production mode
+If you want the 42 Oauth to work, you to set the 42 API key in the .env (only available to students).
