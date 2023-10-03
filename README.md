@@ -46,6 +46,6 @@ Transcendence is a full-stack single page web app crafted by 5 students from Éc
 # To start the project
 
 1. git clone https://github.com/zackarydevove/transcendence.git
-2. run `docker-compose --build up`\
+2. run `docker-compose --build up`
 
 Note: To enable 42 OAuth functionality, ensure to set the 42 API key in the .env file. This feature is exclusively available to students.
