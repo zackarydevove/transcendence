@@ -1,6 +1,6 @@
 # Transcendence
 
-Transcendence is a full-stack single page web app crafted by 5 students from École 42, encapsulating a dynamic Pong game as our final common-core project.
+Transcendence is a full-stack single page web app crafted by 5 students from École 42, encapsulating a dynamic Pong game as our final common-core project
 
 # Tech stack
 
